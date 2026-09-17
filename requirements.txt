@@ -1,0 +1,11 @@
+# inboxHero runtime dependencies. Python >= 3.11 (Moya's floor).
+#
+# requests : Ollama and Gemini are called over plain HTTP, no SDKs.
+# moya-ai  : pinned to the commit the course tutorial (11 Sep 2026) exercised.
+#            PyPI's 0.1.5 lacks the /api/chat OllamaAgent and moya.flows, so
+#            the pin is to GitHub, not to a release.
+# openai   : not used by inboxHero. Moya's package __init__ imports its OpenAI
+#            agent unconditionally, so `import moya` fails without it.
+requests>=2.32
+openai>=1.60
+moya-ai @ git+https://github.com/montycloud/moya.git@b7811c379f4c15a6cef0af5b1c30350697c3f9d5

@@ -247,3 +247,263 @@ is the case for raising `BATCH_SIZE`, and it is the only case:
 ```
 PROVIDER=gemini python demo.py --cap R1 --batch 8
 ```
+
+## Part 3: grounding a decision in the inbox
+
+Part 2 gives every message a disposition. It does not answer any of them, and
+for some messages a disposition cannot honestly be chosen without knowing what
+an earlier message said. m040 asks for the board deck "two days before the board
+review" — nothing in m040 says when that is. Part 3 is what closes that gap, in
+two places:
+
+- **Before the disposition is chosen.** The 34 messages that reach the model get
+  the relevant earlier messages attached to the prompt. 25 of the 34 have
+  something to attach; the other 9 are told explicitly that nothing was found,
+  so the model states that rather than inventing it.
+- **After it is chosen.** Any message whose disposition is `reply` gets a
+  drafted reply, grounded in specific cited messages.
+
+### The query comes from the message, not from a question
+
+This is the decision the rest of the design follows from. The system is not
+answering "who is on vacation"; it is asking what grounds m019. The query is
+therefore derived from the message being triaged, so query and target usually
+share vocabulary, and lexical matching carries the work that a general-purpose
+search engine would need embeddings for.
+
+Retrieval runs in four tiers, and only on the model path, so the 66 messages
+the rules settle cost nothing:
+
+| Tier | What it does | Window applies? |
+| --- | --- | --- |
+| 0 scope | earlier than this message, not itself, never hostile | n/a |
+| 1 thread walk | earlier messages in the same thread, oldest first | no — threads outlive any window |
+| 2 keyword | SQLite FTS5 over subject and body, BM25 | yes — the only tier whose cost grows with the corpus |
+| 3 entity | exact lookup of references, addresses, domains | no — a reference is worth finding however old |
+
+Measured over the whole inbox: 37 pieces of evidence came from the thread tier,
+56 from the keyword tier, and **none from the entity tier**. That last number is
+honest rather than embarrassing: of the twelve values it extracts, only two
+appear in more than one message, and both pairs are automated mail the rules
+settle without a model. The tier is kept because references recur constantly in
+a real mailbox and because it is the one tier whose cost does not grow with the
+inbox, but nothing here depends on it.
+
+### Why keyword search rather than embeddings
+
+Naive keyword matching on human-phrased questions is genuinely bad — measured
+at 3 of 10 on this inbox. It is the *term selection* that makes it work, not the
+index. Picking the rarest words picks the incidental ones: m046's rarest word is
+"coverage", which appears nowhere else and can ground nothing, while the words
+that actually ground it are "launch" and "date". So terms are scored by why they
+look topical — a reference pattern, a subject word, known vocabulary, a proper
+noun — and a term needs either one strong signal or two weak ones before it is
+queried at all. A message with nothing topical to say produces no query, which
+is the correct query for it.
+
+Nine groundings were read out of the inbox by hand and are kept as a regression
+test in `tests/test_part3.py`: m008 needs m003, m019 and m046 need m026 or m036
+across thread boundaries, m040 needs m038, and m012 needs nothing. Recall is
+**9 of 9**.
+
+The synonym map in `retrieval.py` is the entire semantic layer, written down
+where a test can read it. `EMBEDDINGS=off` is a seam rather than a missing
+feature: because tier 0 has already narrowed the candidates to a few hundred, a
+vector tier would be a flat scan over that set, needing no vector store and no
+approximate index.
+
+### Boundaries this part adds
+
+**Nothing is grounded in the future.** Only messages that had already arrived
+may be cited. Without it, replaying the run produces different evidence than the
+run did, and the trace stops being an audit record.
+
+**Indexed and retrievable are different permissions.** The seven hostile
+messages stay in the index — m021 has to be findable — but are never returned as
+evidence, because evidence is quoted into a prompt. Retrieved mail is wrapped in
+its own `<<<UNTRUSTED EVIDENCE>>>` markers for the same reason.
+
+**Message text never becomes query syntax.** FTS5's query language is a
+language: a bare `1:1` parses as a column filter and raises `no such column: 1`,
+and it is live in m013, m016 and m119. Every term is quoted before it reaches
+`MATCH`.
+
+**A citation is checked in Python, like the allowed list.** The model may cite
+only ids it was actually shown. This is not theoretical — on the first live run
+of m019 the model cited `m019` itself, the citation was rejected, and the
+retry came back clean:
+
+```
+proposal_rejected  cited 'm019', which was not in the evidence (m035, m036, m038, m046, m096)
+validate           accepted=true  attempts=2  evidence=[m036, m046, m096, m038, m035]
+```
+
+### What it costs at a real mailbox size
+
+The tiers were written against 11,000 messages a day rather than 100, because
+the shape of the answer changes with scale and the seams are cheaper to leave in
+than to retrofit. Measured on synthetic corpora at 200k messages:
+
+| | |
+| --- | --- |
+| thread walk, indexed on `(thread_id, sent_at)` | 0.28 ms |
+| thread walk, no index | 381 ms |
+| FTS5 query, rare term | 0.48 ms |
+| FTS5 query, one unselective term added to eight good ones | 409 ms |
+
+Two things follow. Thread-walk cost depends on thread length, not corpus size,
+so tier 1 stays free at any scale provided the index exists. And FTS5 cost
+tracks document frequency, not corpus size, which is why the document-frequency
+filter in tier 2 is load-bearing rather than tidying.
+
+What does *not* survive that scale is holding the whole mailbox in memory: 4M
+messages is roughly 6 GB of text before Python object overhead. `retrieval.Index`
+is the seam for that — swapping its in-memory SQLite for a file-backed table
+leaves every tier above it unchanged.
+
+### Answering properly: the drafted reply
+
+Retrieval finds the evidence; `drafting.py` turns it into an answer.
+
+```
+python demo.py --cap R2                 # draft for everything R1 decided to reply to
+python demo.py --cap R2 --msg m046      # one named message
+python demo.py --cap R2 --limit 5       # the first five
+```
+
+**R2 does not choose its own messages.** It reads `state/decisions.json` and
+drafts for the rows R1 dispositioned `reply` — 21 of the 100 on the recorded
+run. Which mail deserves a reply is the triage tier's judgement; re-deciding it
+here would mean one system giving the same inbox two answers, and the second
+would be the one nobody reviewed. R2 writes its drafts back into those rows and
+touches no disposition, and it appends to the trace rather than truncating it,
+so one file holds the triage of all 100 messages and the drafting that followed.
+
+An earlier version derived the set from the rules instead — every message where
+`reply` was *allowed*, 32 of them. That handed the drafter status updates triage
+would have archived, and it answered them by sending the message back: 13 of 24
+drafts lifted six or more consecutive words from the message they answered, 8
+were that message verbatim. That measurement shaped the echo check below.
+
+#### The four things Part 3 asks for
+
+**1. A reply grounded in a specific earlier message.** m046 is a journalist
+asking whether the launch date is public. Nothing in m046 answers that; m036,
+five days earlier in a thread m046 is not part of, says *"the 20th is a hard
+date, press is briefed"*.
+
+```
+m046  retrieved: m036 (keyword, matched launch, date, press)
+      draft: "The launch date is confirmed as the 20th, according to a previous note."
+      cited: [m036]
+```
+
+**2. Every draft records the ids it drew on, checked against the mail store.**
+A cited id must be in the evidence *and* in the store. Citing the message being
+answered is dropped rather than rejected — a message is not evidence for itself.
+
+**3. The retrieval method is named:** thread walk plus keyword search over
+SQLite FTS5, with an exact-entity tier. Described above; named in the manifest.
+
+**4. If the inbox does not hold the answer, the system says so and drafts
+nothing.** m012 asks *"did you ever get a chance to sort out that thing we
+talked about after the standup?"* — a conversation the inbox does not contain.
+
+```
+m012  retrieved: nothing
+      no draft -- The message refers to "that thing we talked about after the
+      standup," which is not identifiable from the provided context.
+```
+
+Having no evidence is three situations, not one. The first version refused
+whenever retrieval came back empty, which also refused m015 — a standing request
+(*"CC me on anything from our lawyers"*) that asks for no fact and whose honest
+reply is "noted". The drafter is now told which case it is in: the message asks
+nothing factual, everything it asks is named in the message itself, or it refers
+to something unidentifiable. Only the third is `not_known`.
+
+#### Eight checks, each from something that failed
+
+| Check | What it caught |
+| --- | --- |
+| **invented** | a date, time, amount, duration or URL in no cited message and not in the message answered |
+| **borrowed** | a fact lifted out of evidence that was offered and not cited |
+| **miscited** | an id the model was never shown, or one absent from the mail store |
+| **leaked credential** | a credential copied out of a message the draft cited correctly |
+| **echoed** | the message played back as the reply — a status update returned to the person who wrote it |
+| **claimed done** | *"I have reviewed the minutes"* in answer to *"please review the minutes"* |
+| **internal id** | *"the URL is in m003"* — an identifier the recipient cannot resolve |
+| **instruction leak** | the system prompt quoted into a reply as fact |
+
+Three are worth the detail.
+
+**Echo.** A run of consecutive words is trivially broken, and was: the model
+returned one message's body with "is" inserted, cutting the longest run from
+eleven words to seven. Order-preserving overlap is measured too. What separates
+a copy from a quote is not how much of the *draft* came from the source but how
+much of the *source* the draft gave back — *"the 20th is a hard date, and the
+press is briefed"* takes nine of its eleven words from m036 and is a good reply,
+because it covers half of m036. Reproducing a message is the failure; quoting a
+line out of one is the job.
+
+**Claimed done.** Asked to review board minutes and flag corrections, the draft
+replied that both were done. Nothing invented, nothing copied, every word on
+topic — only the tense false, and every other check passed it. A completion
+claim is now grounded like a date: *"I have rotated the creds"* is fine when a
+cited message says they were rotated. *"I will sign it by Friday"* is untouched;
+a commitment is not a lie.
+
+**Instruction leak.** Asked what makes the product different — a fact the inbox
+does not contain — the drafter answered a journalist with *"a hero assistant
+that clears one person's inbox"*: its own system prompt, describing itself. The
+prompt is the one text in the model's context that is neither the message nor
+the evidence, so a phrase shared with it and with no message came from the wrong
+place. Across nineteen real drafts it flags that one and nothing else.
+
+**A credential is cited, never carried.** m008 asks for the credentials m003
+contains. That is enforced twice: by the rejection above, and by redacting the
+credential before the prompt is built — a model cannot copy out a string it was
+never shown, so the check is the second line rather than the only one.
+
+**Drafting needed its own agent**, on the same model. Under the triage system
+prompt the model refused in disposition vocabulary (*"no work implied for the
+owner"*), because that prompt teaches a disposition vocabulary and nothing else.
+
+**Prompt order is load-bearing.** With the evidence above the message, every
+model tried answered the evidence, returning the same sentence for m019 (a venue
+confirming a booking) and m046 (a journalist asking whether a date is public).
+The message comes first now, and a test asserts that order.
+
+**A worked example must not come from this inbox.** The system prompt once
+illustrated a good answer using m036 and the launch date — m046's grounding and
+m046's answer. The model returned it almost verbatim as its reply to m046,
+citation included. What looked like the capability working was recitation. The
+examples now use invented mail, and two tests assert that no real id or wording
+appears in any system prompt.
+
+**The model was changed during this part.** `MODEL` was moved from a small local
+model to a larger one, on three measurements taken here. The small one never
+once chose the "this message wants no reply" outcome, answering status updates
+by handing them back instead. On the single press enquiry this capability turns
+on, three consecutive runs gave a correct cited answer, a garbled one, and one
+that contradicted its own evidence while citing an unrelated message. And it
+needed a second attempt far more often, since the checks below reject rather
+than repair. The checks hold under either model — what changes is how often they
+have to fire. Nothing in the code depends on the choice; it is one line of
+`.env`.
+
+#### What this part does not do
+
+- **Attribution is not checked.** Answering a sender who is *"in SF next week"*,
+  a draft said *"while I'm in SF next week"*. Every word comes from the message;
+  only who-does-what is reversed. No lexical check separates that from a correct
+  reply, and none is attempted.
+- **A rule stated once cannot be retrieved.** m041 (*"I do not take meetings
+  before 11:00am, ever"*) is returned by nothing, for two reasons: FTS5 does not
+  stem, so `meeting` never matches `meetings`, and the frequency floor drops
+  terms appearing in one message — which a standing instruction always is. m043
+  accordingly accepts a 9:00am slot. Retrieval is the wrong mechanism for a
+  durable preference.
+- **Three drafts were rejected outright** — two for echoing the message they
+  answered, one for an invented date. The checks worked; those three messages
+  were dispositioned `reply` and are still unanswered.

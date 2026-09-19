@@ -24,7 +24,10 @@ from moya.flows.pipeline import Pipeline
 from moya.flows.steps import AgentStep, BranchStep, FunctionStep
 
 import agents
+import config
+import drafting
 import mailstore
+import retrieval
 import rules
 import trace
 
@@ -61,6 +64,20 @@ class Decision:
     attempts: int = 0
     model_raw: str = ""
     problem: str = ""  # set when the model's answer had to be thrown away
+    # What Part 3 retrieved, and what the model actually leaned on. Both are
+    # kept: evidence offered but not cited is as much a part of the record as
+    # evidence cited, because it is what the decision could have used.
+    evidence: list = field(default_factory=list)
+    cites: list = field(default_factory=list)
+    # Part 3's other half. `draft_reason` is filled instead of `draft` when the
+    # inbox did not hold the answer, because "nothing was drafted" is a result
+    # that has to be readable, not an empty field.
+    draft: str = ""
+    draft_cites: list = field(default_factory=list)
+    draft_reason: str = ""
+    # answered | no_reply | not_known | rejected, or "" when the disposition was
+    # never `reply` and drafting was not attempted at all.
+    draft_outcome: str = ""
 
     def line(self):
         note = f"   <- {self.problem}" if self.problem else ""
@@ -76,6 +93,12 @@ class Decision:
             "flags": list(self.flags),
             "attempts": self.attempts,
             "problem": self.problem,
+            "evidence": list(self.evidence),
+            "cites": list(self.cites),
+            "draft": self.draft,
+            "draft_cites": list(self.draft_cites),
+            "draft_reason": self.draft_reason,
+            "draft_outcome": self.draft_outcome,
         }
 
 
@@ -94,6 +117,30 @@ class RunState:
     # uses one of these instead of calling the model again. Empty when
     # BATCH_SIZE is 1, which is the default.
     batched: dict = field(default_factory=dict)
+    # The FTS5 and entity indexes, built once per run rather than once per
+    # message: indexing is cheap but not free, and rebuilding it per message
+    # would be the one part of retrieval whose cost grows with the inbox.
+    _index: object = None
+
+    _drafter: object = None
+
+    @property
+    def drafter(self):
+        """Built on first use: a run whose messages all archive never needs it.
+
+        A separate agent from the triage one, on the same model. What separates
+        them is the system prompt: a model asked to draft under the triage
+        prompt answers like a classifier.
+        """
+        if self._drafter is None:
+            self._drafter = agents.drafter_agent()
+        return self._drafter
+
+    @property
+    def index(self):
+        if self._index is None and self.mailbox is not None:
+            self._index = retrieval.Index(self.mailbox)
+        return self._index
 
     @property
     def last(self):
@@ -154,12 +201,58 @@ def rule_decision(ctx):
     return ctx
 
 
-def prompt_step(ctx):
-    """Build the model's input from the rule verdict and the quoted message."""
+def retrieve_step(ctx):
+    """Part 3. Find what in the inbox grounds this message, before asking anything.
+
+    Only the model branch reaches here, so the two thirds of the inbox the rules
+    already settled cost nothing. Retrieval never raises: evidence is grounding,
+    not a prerequisite, and a message with none still gets a disposition -- it
+    just gets one that has to admit it could not see what was being referred to.
+    """
     verdict = ctx.metadata["verdict"]
     state = ctx.metadata["state"]
-    ctx.output = agents.build_prompt(ctx.metadata["record"], verdict, state.mailbox)
-    trace.event("prompt", msg_id=verdict.message_id, chars=len(ctx.output), allowed=list(verdict.allowed))
+    record = ctx.metadata["record"]
+    try:
+        found = retrieval.retrieve(
+            state.mailbox,
+            record,
+            k=config.RETRIEVAL_K,
+            index=state.index,
+            window_days=config.RETRIEVAL_WINDOW_DAYS,
+        )
+    except Exception as error:  # noqa: BLE001 - grounding is best-effort, a disposition is not
+        trace.event("retrieve", msg_id=verdict.message_id, error=str(error)[:300], evidence=[])
+        found = retrieval.Retrieved()
+
+    ctx.metadata["evidence"] = found
+    trace.event(
+        "retrieve",
+        msg_id=verdict.message_id,
+        terms=list(found.terms),
+        evidence=[
+            {"id": item.message_id, "source": item.source, "terms": list(item.terms), "score": item.score}
+            for item in found.evidence
+        ],
+        grounded=bool(found),
+        window_days=found.window_days,
+        widened=found.widened,
+    )
+    return ctx
+
+
+def prompt_step(ctx):
+    """Build the model's input from the rule verdict, the evidence and the quoted message."""
+    verdict = ctx.metadata["verdict"]
+    state = ctx.metadata["state"]
+    found = ctx.metadata.get("evidence") or retrieval.Retrieved()
+    ctx.output = agents.build_prompt(ctx.metadata["record"], verdict, state.mailbox, found.evidence)
+    trace.event(
+        "prompt",
+        msg_id=verdict.message_id,
+        chars=len(ctx.output),
+        allowed=list(verdict.allowed),
+        evidence=found.ids,
+    )
     return ctx
 
 
@@ -188,12 +281,14 @@ class TriageStep(AgentStep):
             ctx.output = ctx.metadata["attempt_result"].raw
             return ctx
 
+        found = ctx.metadata.get("evidence")
         result = agents.ask(
             self.agent,
             ctx.output,
             verdict,
             thread_id=ctx.thread_id,
             retries=self.retries,
+            evidence_ids=tuple(found.ids) if found else (),
         )
         ctx.metadata["attempt_result"] = result
         ctx.output = result.raw
@@ -209,6 +304,7 @@ def validate_step(ctx):
     """
     verdict = ctx.metadata["verdict"]
     result = ctx.metadata.get("attempt_result")
+    grounded = ctx.metadata.get("evidence") or retrieval.Retrieved()
 
     if result is None or not result.ok:
         problem = result.problem if result else "the agent step produced nothing"
@@ -223,6 +319,7 @@ def validate_step(ctx):
             attempts=result.attempts if result else 0,
             model_raw=(result.raw[:300] if result else ""),
             problem=problem,
+            evidence=grounded.ids,
         )
         return ctx
 
@@ -233,6 +330,8 @@ def validate_step(ctx):
         disposition=result.proposal["disposition"],
         checked_against=list(verdict.allowed),
         attempts=result.attempts,
+        evidence=grounded.ids,
+        cites=result.proposal.get("cites", []),
     )
     ctx.metadata["decision"] = Decision(
         message_id=verdict.message_id,
@@ -243,7 +342,41 @@ def validate_step(ctx):
         flags=list(verdict.flags),
         attempts=result.attempts,
         model_raw=result.raw[:300],
+        evidence=grounded.ids,
+        cites=result.proposal.get("cites", []),
     )
+    return ctx
+
+
+def draft_step(ctx):
+    """Part 3's answer, for the messages the system decided to reply to.
+
+    Only `reply` reaches here. A message being archived or escalated needs no
+    reply written for it, and drafting one anyway would be work nobody asked for
+    on the majority of the inbox.
+
+    Nothing is sent. A draft is reversible and this step writes no file; the
+    system sends nothing and writes no file here.
+    """
+    decision = ctx.metadata.get("decision")
+    if decision is None or decision.disposition != "reply":
+        return ctx
+
+    state = ctx.metadata["state"]
+    record = ctx.metadata["record"]
+    grounded = ctx.metadata.get("evidence") or retrieval.Retrieved()
+
+    result = drafting.draft(
+        state.drafter,
+        record,
+        grounded.evidence,
+        state.mailbox,
+        thread_id=f"draft-{record.id}",
+    )
+    decision.draft = result.text or ""
+    decision.draft_cites = list(result.cites)
+    decision.draft_reason = result.reason
+    decision.draft_outcome = result.outcome
     return ctx
 
 
@@ -287,9 +420,11 @@ def build_pipeline(agent=None, event_bus=None, retries=1):
                     "rules": FunctionStep(rule_decision, name="rule_decision"),
                     "model": Steps(
                         [
+                            FunctionStep(retrieve_step, name="retrieve"),
                             FunctionStep(prompt_step, name="prompt"),
                             TriageStep(agent, retries=retries),
                             FunctionStep(validate_step, name="validate"),
+                            FunctionStep(draft_step, name="draft"),
                         ],
                         name="model_path",
                     ),

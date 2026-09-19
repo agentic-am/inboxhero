@@ -2,7 +2,7 @@
 
 Values come from the real environment first, then from a `.env` file beside
 this module, then from the defaults below. A real environment variable always
-wins, so `MODEL=llama3.1:8b python demo.py --cap R1` overrides the file
+wins, so `MODEL=<another-tag> python demo.py --cap R1` overrides the file
 without editing it. `.env` is gitignored; `.env.example` documents the keys.
 
 Every other module reads settings from here and never touches `os.environ`
@@ -25,7 +25,7 @@ _DEFAULTS = {
     # Which model answers. PROVIDER is the primary; FALLBACK_PROVIDER is tried
     # only when the primary cannot be reached at all (not on a bad answer).
     "PROVIDER": "ollama",
-    "MODEL": "llama3.2:3b",
+    "MODEL": "gemma4:e4b",
     "OLLAMA_HOST": "http://localhost:11434",
     "FALLBACK_PROVIDER": "gemini",
     "GEMINI_API_KEY": "",
@@ -35,13 +35,23 @@ _DEFAULTS = {
     "CALL_SPACING_SECONDS": "",
     "MAX_RETRIES": "3",
     "TEMPERATURE": "0.1",
-    "REQUEST_TIMEOUT_S": "180",
+    "REQUEST_TIMEOUT_S": "300",
     # How many messages may share one model call. 1 keeps every message in its
     # own context, which is the safe default: text from one sender can then
     # never influence the decision about another. Raising it trades that
     # isolation for speed and tokens. Messages the rules marked sensitive are
     # never batched, whatever this is set to.
     "BATCH_SIZE": "1",
+    # Retrieval (Part 3). K is how many messages may ground one decision.
+    # WINDOW_DAYS limits the keyword tier only, and is off here because this
+    # inbox spans eight days: any window wide enough to be safe is a no-op, and
+    # a narrower one would silently drop m026 as grounding for m019. It exists
+    # for a real mailbox. EMBEDDINGS is the seam, not a feature: the tiers are
+    # lexical, and turning this on would add a vector tier over the same scoped
+    # candidates rather than replace anything.
+    "RETRIEVAL_K": "5",
+    "RETRIEVAL_WINDOW_DAYS": "",
+    "EMBEDDINGS": "off",
     # The inbox and where the run leaves its footprints.
     "OWNER": "sam@paperjet.io",
     "INBOX_FILE": "data/inbox.json",
@@ -96,6 +106,7 @@ def reload():
     global LOADED_FROM_FILE, PROVIDER, MODEL, OLLAMA_HOST, FALLBACK_PROVIDER
     global GEMINI_API_KEY, GEMINI_MODEL, CALL_SPACING_SECONDS, MAX_RETRIES
     global TEMPERATURE, REQUEST_TIMEOUT_S, OWNER, BATCH_SIZE
+    global RETRIEVAL_K, RETRIEVAL_WINDOW_DAYS, EMBEDDINGS
     global INBOX_PATH, STATE_PATH, TRACE_PATH
 
     LOADED_FROM_FILE = _load_env_file()
@@ -113,6 +124,11 @@ def reload():
     TEMPERATURE = float(_setting("TEMPERATURE"))
     REQUEST_TIMEOUT_S = float(_setting("REQUEST_TIMEOUT_S"))
     BATCH_SIZE = int(_setting("BATCH_SIZE"))
+
+    RETRIEVAL_K = int(_setting("RETRIEVAL_K"))
+    window = _setting("RETRIEVAL_WINDOW_DAYS").strip()
+    RETRIEVAL_WINDOW_DAYS = int(window) if window else None  # None = unbounded
+    EMBEDDINGS = _setting("EMBEDDINGS").strip().lower()
 
     OWNER = _setting("OWNER").strip().lower()
 
@@ -140,13 +156,19 @@ def problems():
     if FALLBACK_PROVIDER and FALLBACK_PROVIDER == PROVIDER:
         found.append("FALLBACK_PROVIDER is the same as PROVIDER; leave it empty to disable.")
     if not MODEL:
-        found.append("MODEL is empty; e.g. MODEL=llama3.2:3b")
+        found.append("MODEL is empty; set it to a model tag you have pulled in Ollama.")
     if PROVIDER == "gemini" and not GEMINI_API_KEY:
         found.append("PROVIDER=gemini needs GEMINI_API_KEY.")
     if MAX_RETRIES < 0:
         found.append("MAX_RETRIES must be 0 or more.")
     if BATCH_SIZE < 1:
         found.append(f"BATCH_SIZE must be 1 or more, got {BATCH_SIZE}.")
+    if RETRIEVAL_K < 1:
+        found.append(f"RETRIEVAL_K must be 1 or more, got {RETRIEVAL_K}.")
+    if RETRIEVAL_WINDOW_DAYS is not None and RETRIEVAL_WINDOW_DAYS < 1:
+        found.append("RETRIEVAL_WINDOW_DAYS must be 1 or more, or empty for unbounded.")
+    if EMBEDDINGS not in ("off", "on"):
+        found.append(f"EMBEDDINGS={EMBEDDINGS!r} must be off or on.")
     if not INBOX_PATH.exists():
         found.append(f"INBOX_FILE {INBOX_PATH} does not exist.")
     return found
@@ -183,6 +205,8 @@ def describe():
     print(f"  batch size      {BATCH_SIZE}" + ("  (one message per call)" if BATCH_SIZE == 1 else "  (messages share a call; sensitive ones never do)"))
     print(f"  retries         {MAX_RETRIES}, spacing {CALL_SPACING_SECONDS if CALL_SPACING_SECONDS is not None else 'provider default'}")
     print(f"  temperature     {TEMPERATURE}, timeout {REQUEST_TIMEOUT_S:.0f}s")
+    window = f"{RETRIEVAL_WINDOW_DAYS}d" if RETRIEVAL_WINDOW_DAYS else "unbounded"
+    print(f"  retrieval       k={RETRIEVAL_K}, keyword window {window}, embeddings {EMBEDDINGS}")
     print(f"  owner           {OWNER}")
     print(f"  inbox           {INBOX_PATH}")
     print(f"  state           {STATE_PATH}")

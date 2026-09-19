@@ -9,7 +9,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m072",
@@ -21,24 +27,36 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m001",
-    "disposition": "defer",
-    "reason": "the owner must investigate the staging issue when they get in",
+    "disposition": "reply",
+    "reason": "The sender is asking the owner to investigate a technical issue with staging.",
     "path": "model",
     "rule": "abstain",
     "flags": [
       "internal_sender"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "I will take a look at the staging issue when I get in.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m003",
-    "disposition": "defer",
-    "reason": "the message is waiting on the recipient to restart the worker",
+    "disposition": "escalate",
+    "reason": "The message discusses rotating broker credentials, which involves sensitive credentials and requires escalation.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -47,8 +65,16 @@
       "sensitive_topic",
       "sent_by_owner_to_someone_else"
     ],
-    "attempts": 1,
-    "problem": ""
+    "attempts": 2,
+    "problem": "",
+    "evidence": [
+      "m001"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m112",
@@ -60,19 +86,34 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m005",
     "disposition": "archive",
-    "reason": "the message is a casual acknowledgement from a colleague, no further action required",
+    "reason": "This message confirms a fix and requires no further action from the owner.",
     "path": "model",
     "rule": "abstain",
     "flags": [
       "internal_sender"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m001",
+      "m003"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m088",
@@ -84,7 +125,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m064",
@@ -96,7 +143,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m104",
@@ -108,7 +161,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m080",
@@ -120,12 +179,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m044",
-    "disposition": "defer",
-    "reason": "the owner must wait for Priya to approve the invoice, and a deadline is implied",
+    "disposition": "delegate",
+    "reason": "The message asks a colleague to approve an invoice, which work should be handed to Priya.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -135,7 +200,13 @@
       "sent_by_owner_to_someone_else"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m097",
@@ -147,7 +218,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m073",
@@ -159,7 +236,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m113",
@@ -171,7 +254,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m089",
@@ -183,7 +272,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m065",
@@ -195,12 +290,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m008",
-    "disposition": "delegate",
-    "reason": "the work of handing over the staging queue creds should be handed to a named colleague instead of the owner",
+    "disposition": "reply",
+    "reason": "The sender is asking for the staging queue credentials URL that was previously provided in m003.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -208,7 +309,19 @@
       "sensitive_topic"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m001",
+      "m003",
+      "m005"
+    ],
+    "cites": [],
+    "draft": "The new staging AMQP URL was provided in my reply to the thread about staging being down again.",
+    "draft_cites": [
+      "m003"
+    ],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m105",
@@ -220,7 +333,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m081",
@@ -232,12 +351,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m041",
-    "disposition": "delegate",
-    "reason": "the message is a standing preference about future mail handling, and it does not require the owner's immediate attention or action",
+    "disposition": "escalate",
+    "reason": "the model did not return a usable decision, so a human should look at this",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -247,8 +372,16 @@
       "has_datetime",
       "sensitive_topic"
     ],
-    "attempts": 1,
-    "problem": ""
+    "attempts": 2,
+    "problem": "disposition 'archive' was not in the allowed list ['reply', 'defer', 'delegate', 'escalate']",
+    "evidence": [
+      "m080"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m098",
@@ -260,7 +393,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m074",
@@ -272,12 +411,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m015",
-    "disposition": "delegate",
-    "reason": "the work should be handed to a named colleague, Priya, instead of the owner",
+    "disposition": "escalate",
+    "reason": "The message concerns legal correspondence and requires careful handling.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -286,7 +431,13 @@
       "sensitive_topic"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m114",
@@ -298,7 +449,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m090",
@@ -310,7 +467,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m066",
@@ -322,7 +485,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m106",
@@ -334,7 +503,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m082",
@@ -346,12 +521,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m026",
     "disposition": "archive",
-    "reason": "the message is an announcement and does not ask the owner for anything or imply any work",
+    "reason": "This message is a kickoff announcement that requires no direct action or answer from the owner.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -359,24 +540,38 @@
       "has_datetime"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m027",
     "disposition": "archive",
-    "reason": "the message is an update on a thread, and no action is needed from the owner",
+    "reason": "This is a status update that requires no action from the owner.",
     "path": "model",
     "rule": "abstain",
     "flags": [
       "internal_sender"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m026"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m028",
-    "disposition": "defer",
-    "reason": "the owner must complete the draft by Wednesday, as per the sender's request",
+    "disposition": "archive",
+    "reason": "This message is an update on ownership and does not ask the owner for anything.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -384,7 +579,16 @@
       "has_datetime"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m026",
+      "m027"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m099",
@@ -396,7 +600,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m075",
@@ -408,12 +618,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m029",
     "disposition": "archive",
-    "reason": "the message is part of a thread with a scheduled load test and no further action is needed",
+    "reason": "This message provides an update about a scheduled load test and requires no action from the owner.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -421,12 +637,22 @@
       "has_datetime"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m026",
+      "m027",
+      "m028"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m030",
-    "disposition": "defer",
-    "reason": "the owner must approve the pricing copy by the 12th, as specified in the message",
+    "disposition": "reply",
+    "reason": "The message specifically asks Sam to approve the final pricing copy by the 12th.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -434,19 +660,44 @@
       "has_datetime"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m026",
+      "m027",
+      "m028",
+      "m029"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "no usable draft: the draft copies 8 consecutive words out of the mail it is answering or citing; write a reply instead",
+    "draft_outcome": "rejected"
   },
   {
     "message_id": "m033",
-    "disposition": "archive",
-    "reason": "an automated email blast draft with comments welcome, no work implied for the owner",
+    "disposition": "reply",
+    "reason": "Maya has asked Sam to approve the final pricing copy by the 12th, which requires a response.",
     "path": "model",
     "rule": "abstain",
     "flags": [
       "internal_sender"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m026",
+      "m027",
+      "m028",
+      "m029",
+      "m030"
+    ],
+    "cites": [
+      "m030"
+    ],
+    "draft": "I will take a look at the email blast draft in the shared doc and provide my comments.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m115",
@@ -458,7 +709,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m091",
@@ -470,7 +727,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m067",
@@ -482,7 +745,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m107",
@@ -494,7 +763,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m083",
@@ -506,7 +781,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m108",
@@ -518,7 +799,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m084",
@@ -530,19 +817,39 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m034",
-    "disposition": "archive",
-    "reason": "the message is an automated update from a colleague, no action needed",
+    "disposition": "reply",
+    "reason": "The sender is asking the owner to approve the final pricing copy by the 12th, which requires an answer.",
     "path": "model",
     "rule": "abstain",
     "flags": [
       "internal_sender"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m026",
+      "m028",
+      "m029",
+      "m030",
+      "m033"
+    ],
+    "cites": [
+      "m030"
+    ],
+    "draft": "Thanks for letting me know about the hero image and assets. I'll keep an eye out for the final upload.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m100",
@@ -554,7 +861,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m076",
@@ -566,12 +879,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m038",
-    "disposition": "defer",
-    "reason": "the owner is waiting on an answer to confirm the board review date and time",
+    "disposition": "reply",
+    "reason": "The message confirms a future meeting date and the owner might need to confirm attendance or review the upcoming agenda.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -579,8 +898,18 @@
       "has_datetime",
       "sensitive_topic"
     ],
-    "attempts": 1,
-    "problem": ""
+    "attempts": 2,
+    "problem": "",
+    "evidence": [
+      "m029",
+      "m027",
+      "m114"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "no usable draft: the draft copies 10 consecutive words out of the mail it is answering or citing; write a reply instead",
+    "draft_outcome": "rejected"
   },
   {
     "message_id": "m116",
@@ -592,7 +921,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m092",
@@ -604,7 +939,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m068",
@@ -616,19 +957,31 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m051",
-    "disposition": "archive",
-    "reason": "the message is a casual inquiry from an old friend with no work or action required",
+    "disposition": "reply",
+    "reason": "The sender is asking to meet for coffee next week, which requires a response.",
     "path": "model",
     "rule": "abstain",
     "flags": [
       "external_sender"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "I'd be up for grabbing coffee and catching up while I'm in SF next week.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m109",
@@ -640,7 +993,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m085",
@@ -652,12 +1011,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m010",
-    "disposition": "defer",
-    "reason": "the owner is waiting on an answer to a specific date and time",
+    "disposition": "reply",
+    "reason": "The sender is asking to schedule a call and needs confirmation on a proposed date and time.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -665,7 +1030,18 @@
       "has_datetime"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m083",
+      "m098",
+      "m080",
+      "m066"
+    ],
+    "cites": [],
+    "draft": "Tuesday the 15th at 3:00pm works for me. Please feel free to send a calendar hold.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m101",
@@ -677,7 +1053,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m077",
@@ -689,12 +1071,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m040",
-    "disposition": "delegate",
-    "reason": "the work should be handed to a named colleague instead of the owner",
+    "disposition": "reply",
+    "reason": "The sender is asking the owner to complete and circulate the board deck by a specific date.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -702,7 +1090,15 @@
       "sensitive_topic"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m038"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "no usable draft: the draft states something the inbox does not: '16th'",
+    "draft_outcome": "rejected"
   },
   {
     "message_id": "m057",
@@ -714,12 +1110,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m117",
-    "disposition": "archive",
-    "reason": "a friendly reminder with no request or implication of work for the owner",
+    "disposition": "reply",
+    "reason": "The message is a reminder to submit a timesheet by a specific deadline, which requires the owner to take action.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -727,7 +1129,19 @@
       "has_datetime"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m101",
+      "m098",
+      "m080",
+      "m066",
+      "m010"
+    ],
+    "cites": [],
+    "draft": "I will submit my timesheet by Friday.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m069",
@@ -739,7 +1153,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m093",
@@ -751,19 +1171,39 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m035",
-    "disposition": "archive",
-    "reason": "a thread update from a colleague with no action required",
+    "disposition": "reply",
+    "reason": "The sender asks Sam to approve the final pricing copy by the 12th, requiring a direct answer.",
     "path": "model",
     "rule": "abstain",
     "flags": [
       "internal_sender"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m026",
+      "m029",
+      "m030",
+      "m033",
+      "m034"
+    ],
+    "cites": [
+      "m030"
+    ],
+    "draft": "Thanks for the update on the staging deploy.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m017",
@@ -776,7 +1216,13 @@
       "injection"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m024",
@@ -789,7 +1235,13 @@
       "injection"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m049",
@@ -801,7 +1253,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m061",
@@ -814,7 +1272,13 @@
       "has_datetime"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m086",
@@ -826,7 +1290,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m062",
@@ -838,7 +1308,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m110",
@@ -850,12 +1326,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m036",
-    "disposition": "defer",
-    "reason": "the owner must review the launch week kickoff and confirm the press briefing date with priya",
+    "disposition": "reply",
+    "reason": "The message reminds the team about the hard launch date, but no direct action is requested from the owner.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -864,12 +1346,26 @@
       "sensitive_topic"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m026",
+      "m030",
+      "m033",
+      "m034",
+      "m035"
+    ],
+    "cites": [],
+    "draft": "Thanks for the reminder about the 20th. I recall that I was asked to approve the final pricing copy by the 12th, regarding the annual discount wording, in a previous message.",
+    "draft_cites": [
+      "m030"
+    ],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m042",
-    "disposition": "defer",
-    "reason": "the owner is waiting on an answer to a question about a backend role and a deadline is implied",
+    "disposition": "reply",
+    "reason": "The sender is following up on a job role and needs an answer regarding next steps and timeline.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -878,7 +1374,13 @@
       "sensitive_topic"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "Thanks for following up. I will get back to you regarding next steps and the timeline for the backend role.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m078",
@@ -890,7 +1392,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m102",
@@ -902,7 +1410,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m021",
@@ -915,12 +1429,18 @@
       "fraud"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m013",
-    "disposition": "defer",
-    "reason": "the owner is waiting on an answer to a question about a date change",
+    "disposition": "reply",
+    "reason": "The sender is asking to reschedule a meeting time, which requires the owner to respond.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -928,12 +1448,18 @@
       "has_datetime"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "Wednesday at 2:00pm works for me. I'll use the same link.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m118",
     "disposition": "archive",
-    "reason": "the message is an automated announcement with no action required from the owner",
+    "reason": "This is an informational announcement about the office closure with no required action.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -941,7 +1467,15 @@
       "has_datetime"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m038"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m070",
@@ -953,7 +1487,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m045",
@@ -966,7 +1506,13 @@
       "fraud"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m094",
@@ -978,12 +1524,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m059",
-    "disposition": "archive",
-    "reason": "a colleague is informing the owner of their absence and the on-call arrangement, which is already known or can be easily looked up",
+    "disposition": "reply",
+    "reason": "The sender is asking if a specific time on Tuesday the 15th works for an introductory call.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -991,19 +1543,36 @@
       "has_datetime"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m010",
+      "m086"
+    ],
+    "cites": [
+      "m010"
+    ],
+    "draft": "Thanks for the heads up about being out Thursday and Friday next week. I'll let Raghav know.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m012",
     "disposition": "reply",
-    "reason": "the sender asks the owner directly for a status update on a task they previously discussed",
+    "reason": "The sender is asking if the owner has sorted out something discussed previously and needs an answer.",
     "path": "model",
     "rule": "abstain",
     "flags": [
       "internal_sender"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "the message refers to \"that thing we talked about after the standup,\" which is not identifiable from the provided context.",
+    "draft_outcome": "not_known"
   },
   {
     "message_id": "m039",
@@ -1016,7 +1585,13 @@
       "injection"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m053",
@@ -1028,7 +1603,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m087",
@@ -1040,7 +1621,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m063",
@@ -1052,7 +1639,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m023",
@@ -1065,7 +1658,13 @@
       "fraud"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m111",
@@ -1077,12 +1676,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m018",
     "disposition": "escalate",
-    "reason": "the message touches legal matters and is addressed to the owner by a sender outside the company, potentially containing sensitive information",
+    "reason": "This message involves a contract amendment and requires a signature, which must be escalated.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -1091,12 +1696,24 @@
       "sensitive_topic"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m065",
+      "m066",
+      "m075",
+      "m078",
+      "m107"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m016",
-    "disposition": "defer",
-    "reason": "the owner is waiting on an answer to a question about a specific date and time",
+    "disposition": "reply",
+    "reason": "The sender is asking if a specific time on Wednesday works for a product demo.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -1104,12 +1721,21 @@
       "has_datetime"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m010",
+      "m013"
+    ],
+    "cites": [],
+    "draft": "Wednesday at 2:00pm works for us.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m046",
     "disposition": "reply",
-    "reason": "the sender asks the owner for a statement and confirmation, and is waiting on an answer",
+    "reason": "The sender is asking for product differentiators and confirmation of the launch date, requiring a direct answer.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -1118,12 +1744,22 @@
       "sensitive_topic"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m036"
+    ],
+    "cites": [],
+    "draft": "The launch date is confirmed as the 20th, according to a previous note.",
+    "draft_cites": [
+      "m036"
+    ],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m019",
-    "disposition": "escalate",
-    "reason": "the message touches money (booking confirmation) and is from an external sender, which cannot be trusted to decide safely",
+    "disposition": "reply",
+    "reason": "The sender needs a confirmation to secure the booking, which requires the owner's direct answer.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -1131,12 +1767,21 @@
       "sensitive_topic"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m036",
+      "m046"
+    ],
+    "cites": [],
+    "draft": "Yes, please send over the contract.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m043",
-    "disposition": "defer",
-    "reason": "the owner is waiting on an answer to a request about a specific date and time",
+    "disposition": "reply",
+    "reason": "The sender is asking if a specific time on Monday works for a meeting, requiring a direct answer.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -1144,7 +1789,16 @@
       "has_datetime"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m010",
+      "m016"
+    ],
+    "cites": [],
+    "draft": "Monday at 9:00am works for the partner to join briefly for 20 minutes.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m103",
@@ -1156,7 +1810,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m079",
@@ -1168,12 +1828,18 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m048",
-    "disposition": "defer",
-    "reason": "the owner must review the draft board minutes ahead of the meeting on the 18th by Monday",
+    "disposition": "reply",
+    "reason": "The sender is asking for a specific time slot that requires the owner to confirm availability.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -1182,7 +1848,21 @@
       "sensitive_topic"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m010",
+      "m016",
+      "m038",
+      "m040",
+      "m043"
+    ],
+    "cites": [
+      "m043"
+    ],
+    "draft": "I will review the draft board minutes and flag any corrections by Monday.",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": "answered"
   },
   {
     "message_id": "m047",
@@ -1195,12 +1875,18 @@
       "injection"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m055",
     "disposition": "escalate",
-    "reason": "the message touches money (contractor's IP assignment) and is from an external sender, potentially containing sensitive information",
+    "reason": "This message requires a signature on a legal document, which must be escalated.",
     "path": "model",
     "rule": "abstain",
     "flags": [
@@ -1208,19 +1894,35 @@
       "sensitive_topic"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [
+      "m018",
+      "m065",
+      "m075"
+    ],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m119",
     "disposition": "archive",
-    "reason": "the message is an auto-saved note from a 1:1 meeting, and no action is needed",
+    "reason": "This is an automated note summary that requires no action from the owner.",
     "path": "model",
     "rule": "abstain",
     "flags": [
       "internal_sender"
     ],
     "attempts": 1,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m095",
@@ -1232,7 +1934,13 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   },
   {
     "message_id": "m071",
@@ -1244,6 +1952,12 @@
       "automated_sender"
     ],
     "attempts": 0,
-    "problem": ""
+    "problem": "",
+    "evidence": [],
+    "cites": [],
+    "draft": "",
+    "draft_cites": [],
+    "draft_reason": "",
+    "draft_outcome": ""
   }
 ]

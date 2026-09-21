@@ -27,6 +27,7 @@ import re
 from dataclasses import dataclass
 
 import config
+import prefs
 import provider
 import trace
 
@@ -421,6 +422,15 @@ def build_draft_prompt(message, evidence, withhold_secret=False, owner=None):
         )
         lines.append("")
 
+    # Standing instructions come after the mail and before the rules, because
+    # they are neither: not something this message says, and not a property of
+    # the format. They are the owner speaking, from an earlier run, and they
+    # outrank what the correspondent is asking for.
+    standing = prefs.for_prompt()
+    if standing:
+        lines.append(standing)
+        lines.append("")
+
     lines.extend(
         [
             "Rules, all of which are checked after you answer:",
@@ -553,7 +563,20 @@ def parse_draft(raw, message, evidence, mailbox, prompt=""):
 
     cited_text = "\n".join((mailbox.by_id(mid).text() for mid in checked))
     own_text = message.text()
-    grounds = f"{cited_text}\n{own_text}".lower()
+    # The owner's standing instructions ground a draft as much as the mail does.
+    # Without this the two checks below contradict each other: a message proposing
+    # a slot the owner never takes has to be answered with the floor instead, and
+    # that time appears in neither the message nor its evidence -- the instruction
+    # that states it is precisely the one retrieval cannot find. The first run
+    # with a floor stored produced exactly that, a correct reply offering 11:00am
+    # rejected for "states something the inbox does not".
+    #
+    # It is not a hole in the check. A preference reaches here only after the
+    # narrowing check accepted it and a person approved it at the gate, so its
+    # values are the owner's own words -- a narrower and better-attested source
+    # than a quoted message.
+    standing = prefs.for_prompt()
+    grounds = f"{cited_text}\n{own_text}\n{standing}".lower()
 
     # A credential may be cited but never carried. This is the rule the prompt
     # asks for and the reason the check exists twice: asking is not enforcing.
@@ -626,6 +649,20 @@ def parse_draft(raw, message, evidence, mailbox, prompt=""):
             "the draft states something the inbox does not: " + ", ".join(repr(v) for v in invented[:3])
         )
 
+    # A standing instruction the owner gave in an earlier run. Checked here, in
+    # Python, for the same reason every other rule in this function is: the
+    # prompt already carries it, and a rule that lives only in a prompt is a
+    # request. This is the one check whose content is not fixed in the source --
+    # it comes from `state/prefs.json`, so a run with nothing stored skips it and
+    # a run that has learned a floor enforces it.
+    early = prefs.too_early(text)
+    if early:
+        floor = prefs.clock(prefs.meeting_floor())
+        raise DraftRejected(
+            f"the draft names {early[0]}, and the owner does not take meetings before {floor}; "
+            f"do not name an earlier time at all -- offer {floor} or later"
+        )
+
     withheld = contains_secret(cited_text)
     return Draft(message.id, text, tuple(checked), "", withheld)
 
@@ -658,6 +695,15 @@ def draft(agent, message, evidence, mailbox, thread_id="default", retries=1):
 
     problem = ""
     echoed_every_attempt = True
+    # Everything in the model's context that is instruction rather than mail. The
+    # system prompt, plus each retry hint as it is added -- a hint is written by
+    # this system, so wording the draft shares with one came from us and not from
+    # the inbox, exactly like wording taken from the system prompt.
+    #
+    # The hints were left out of this at first, and a retry promptly recited one
+    # back word for word as its answer. The check could not see it, because the
+    # hint lives in the per-message prompt rather than the system prompt.
+    instructions = [getattr(agent, "system_prompt", "")]
     for attempt in range(1, retries + 2):
         try:
             raw = agent.handle_message(prompt, thread_id=thread_id)
@@ -665,10 +711,10 @@ def draft(agent, message, evidence, mailbox, thread_id="default", retries=1):
             trace.event("draft_error", msg_id=message.id, attempt=attempt, error=str(error)[:300])
             return Draft(message.id, None, (), f"the model could not be reached: {error}", outcome="rejected")
         try:
-            # The system prompt only. The per-message prompt quotes the mail, so
-            # checking against it would flag a draft for correctly quoting the
-            # message it is answering.
-            result = parse_draft(raw, message, evidence, mailbox, getattr(agent, "system_prompt", ""))
+            # Instructions only. The rest of the per-message prompt quotes the
+            # mail, so checking against all of it would flag a draft for
+            # correctly quoting the message it is answering.
+            result = parse_draft(raw, message, evidence, mailbox, "\n".join(instructions))
         except DraftRejected as error:
             problem = str(error)
             echoed_every_attempt = echoed_every_attempt and "copies" in problem
@@ -685,6 +731,23 @@ def draft(agent, message, evidence, mailbox, thread_id="default", retries=1):
                     'wants no answer at all, say so: {"draft": null, "outcome": "no_reply", '
                     '"reason": "..."}.'
                 )
+            elif "does not take meetings before" in problem:
+                # The rejection says what the rule is, and on its own that was not
+                # enough: asked to stop naming a time, the model reached for the
+                # proposed one again on both attempts.
+                #
+                # The obvious fix -- show it a sentence to write -- was tried and
+                # is not available here. It worked, and it worked by being copied
+                # back word for word, which makes the capability the example
+                # rather than the model. So this says what the reply must and must
+                # not contain, and supplies no wording to lift.
+                floor = prefs.clock(prefs.meeting_floor())
+                hint = (
+                    f"\nYour reply must not contain the time you were sent. Decline anything "
+                    f"earlier, propose {floor}, and use your own wording."
+                )
+            if hint:
+                instructions.append(hint)
             prompt = f"{prompt}\n\nYour previous answer was rejected: {problem}{hint}\nAnswer again, correctly."
             continue
         trace.event(

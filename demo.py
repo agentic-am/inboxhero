@@ -5,6 +5,8 @@
     python demo.py --msg m024            # one message, with its trace
     python demo.py --cap R3              # put every irreversible action through the gate
     python demo.py --undo 7              # take back action 7, if it can be taken back
+    python demo.py --cap R4 --learn      # record the owner's standing instructions, then exit
+    python demo.py --cap R4              # a separate process: load them and act on them
 
 Arguments are validated before anything else happens, and a bad one exits with
 status 2 and a sentence saying what was wrong. The command line is a boundary,
@@ -25,6 +27,8 @@ import drafting
 import flow
 import gate
 import mailstore
+import memory
+import prefs
 import retrieval
 import rules
 import trace
@@ -34,6 +38,7 @@ CAPABILITIES = {
     "R1": "Zero the inbox: every message gets exactly one disposition and a reason.",
     "R2": "Answer properly: draft a reply grounded in a specific earlier message, citing its id.",
     "R3": "Gate the irreversible: nothing leaves without a dry-run or a person, and every decision is logged.",
+    "R4": "Standing instructions: a preference stated in one run changes how a later, separate run behaves.",
 }
 
 # R2's candidate rule, stated once and applied to whatever inbox is loaded. No
@@ -146,6 +151,11 @@ def parse_args(argv=None):
         help="propose deleting a message; only a person may ask for this, and the gate always asks",
     )
     parser.add_argument("--undo", type=int, metavar="N", help="take back action N from state/actions.json")
+    parser.add_argument(
+        "--learn",
+        action="store_true",
+        help="with --cap R4: record the standing instructions and exit, changing nothing else",
+    )
     args = parser.parse_args(argv)
 
     if args.undo is not None:
@@ -158,6 +168,8 @@ def parse_args(argv=None):
         args.gate = args.gate.lower()
     if args.delete and args.cap and args.cap.upper() != "R3":
         raise Usage("--delete is a gated action, so it runs under --cap R3")
+    if args.learn and args.cap and args.cap.upper() != "R4":
+        raise Usage("--learn records standing instructions, so it runs under --cap R4")
     if args.cap and args.cap.upper() not in CAPABILITIES:
         raise Usage(f"unknown capability {args.cap!r}")
     if args.cap:
@@ -265,6 +277,155 @@ def summarise_drafts(results):
     # Part 3 asks for at least one grounded draft. Say so plainly rather than
     # leaving a reader to count.
     return 0 if cited else 1
+
+
+def learn_preferences(box, run_id=""):
+    """R4 --learn. Read the standing instructions out of the inbox, and stop there.
+
+    This half of the capability writes `state/prefs.json` and nothing else. It
+    does not go on to use what it learned, because the thing being demonstrated
+    is that the next process picks it up from disk -- and a run that recorded a
+    preference and then acted on it in the same breath would prove only that a
+    variable survived a function call.
+    """
+    agent = agents.preference_agent()
+    found = prefs.candidates(box)
+    print(f"  {len(found)} message(s) look like a standing instruction: {', '.join(m.id for m in found) or 'none'}")
+    print("  (derived from the rule tier's flag, not from a list of ids)\n")
+
+    proposals, refused = [], []
+    for message in found:
+        row, problem = prefs.learn(agent, message, box)
+        if row is None:
+            refused.append((message.id, problem))
+            continue
+        proposals.append(
+            gate.Proposal(
+                message_id=message.id,
+                action="preference_write",
+                subject=message.subject,
+                thread_id=message.thread_id,
+                payload=row,
+            )
+        )
+
+    for message_id, problem in refused:
+        print(f"  {message_id}: not recorded -- {problem}")
+    if refused:
+        print()
+
+    if not proposals:
+        print("  nothing to record.")
+        return []
+
+    passes = gate.run(proposals, box, mode=config.GATE_MODE, run_id=run_id)
+    for name, done in passes:
+        report_pass(name, done)
+    return passes
+
+
+def affected_by(box, rows):
+    """Recorded decisions whose correct treatment depends on a stored preference.
+
+    Derived from the preferences themselves, so the set moves when the stored
+    instructions move. Naming the messages here would make the capability a claim
+    about ids that were known to work rather than about the rule.
+    """
+    floor = prefs.meeting_floor()
+    found = []
+    for row in rows:
+        message = box.by_id(row.get("message_id"))
+        if message is None:
+            continue
+        why = []
+        early = prefs.too_early(message.text()) if floor is not None else ()
+        if early:
+            why.append(f"proposes {early[0]}, earlier than the {prefs.clock(floor)} floor")
+        copies = prefs.cc_for(message.sender)
+        if copies:
+            why.append(f"a CC rule applies to {message.sender}: {', '.join(copies)}")
+        if why:
+            found.append((message, row, why))
+    return found
+
+
+def honour_preferences(box, args, run_id=""):
+    """R4. A fresh process, the preferences read back off disk, and what changes.
+
+    Three things are shown, because "it changes how the system behaves" is a
+    claim about behaviour and not about a file having been written:
+    what was loaded, what the gate now refuses, and what the drafter now writes.
+    """
+    stored = memory.all_prefs()
+    if not stored:
+        raise Usage(
+            f"nothing recorded in {config.STATE_PATH.name}/prefs.json. "
+            "Run `python demo.py --cap R4 --learn` first, let it exit, then run this."
+        )
+
+    print(f"  {len(stored)} standing instruction(s) read back from {config.STATE_PATH.name}/prefs.json:")
+    for key, entry in stored.items():
+        called = f", which the message called {entry['called']!r}" if entry.get("called") else ""
+        print(f"    {key:24} = {entry.get('value')}   (stated in {entry.get('source')}{called})")
+    print(f"\n  as the drafter will be told them:\n")
+    for line in prefs.for_prompt().splitlines():
+        print(f"    {line}")
+
+    rows = read_decisions()
+    affected = affected_by(box, rows)
+    print(f"\n  {len(affected)} message(s) in this inbox are affected:")
+    for message, row, why in affected:
+        owed = row.get("disposition") == "reply"
+        note = "" if owed else "   (no reply is owed, so nothing changes for it)"
+        print(f"    {message.id} [{row.get('disposition'):8}] {'; '.join(why)}{note}")
+
+    # What the gate does with drafts written before the instruction was stated.
+    stale = [
+        gate.Proposal(
+            message_id=message.id,
+            action="send",
+            recipient=message.sender,
+            subject=message.subject,
+            body=row.get("draft") or "",
+            cites=tuple(row.get("draft_cites") or ()),
+            thread_id=message.thread_id,
+        )
+        for message, row, _ in affected
+        if (row.get("draft") or "").strip()
+    ]
+    if stale:
+        print(f"\n  === the gate, on the {len(stale)} draft(s) written before the instruction existed ===")
+        folders = actions.load_applied()
+        for proposal in stale:
+            refusals, asks = gate.screen(proposal, box.by_id(proposal.message_id), box, folders)
+            copies = prefs.cc_for(proposal.recipient)
+            if refusals:
+                print(f"    {proposal.message_id}  REFUSED   {'; '.join(refusals)}")
+            elif copies:
+                print(f"    {proposal.message_id}  allowed, and the outbox file will carry Cc: {', '.join(copies)}")
+            else:
+                print(f"    {proposal.message_id}  allowed, unchanged")
+
+    # And what the drafter writes now, with the instruction in the prompt and the
+    # same rule checked again in Python afterwards.
+    redraft = [m for m, row, _ in affected if row.get("disposition") == "reply" and prefs.too_early(m.text())]
+    if redraft and not args.quiet:
+        index = retrieval.Index(box)
+        drafter = agents.drafter_agent()
+        print(f"\n  === redrafting the {len(redraft)} affected repl(y/ies) with the instruction in force ===")
+        for message in redraft:
+            was = next((r.get("draft") for m, r, _ in affected if m.id == message.id), "") or "(none)"
+            found = retrieval.retrieve(box, message, k=config.RETRIEVAL_K, index=index)
+            result = drafting.draft(drafter, message, found.evidence, box, thread_id=f"pref-{message.id}")
+            print(f"\n    {message.id}  {message.sender}")
+            print(f"      asked for: {', '.join(prefs.too_early(message.text()))}")
+            print(f"      before:    {was.splitlines()[0] if was.strip() else '(none)'}")
+            if result.drafted:
+                for number, line in enumerate(result.text.splitlines()):
+                    print(f"      {'after: ' if number == 0 else '       '}   {line}")
+            else:
+                print(f"      after:     no draft -- {result.reason}")
+    return 0
 
 
 def show_register():
@@ -488,7 +649,7 @@ def main(argv=None):
     # needs to check a citation: a `draft` event is only worth anything next to
     # the `read` events for the ids it cites, and a `gate` event is only worth
     # anything next to the draft it let through. R1 starts clean.
-    run_id = trace.start_run(cap=cap, fresh=cap not in ("R2", "R3"))
+    run_id = trace.start_run(cap=cap, fresh=cap not in ("R2", "R3", "R4"))
 
     print(f"=== {cap}: {CAPABILITIES[cap]} ===")
     print(f"  inbox {config.INBOX_PATH.name}: {len(box)} records, {len(box.problems)} malformed")
@@ -498,8 +659,26 @@ def main(argv=None):
         print("  no model is called: this part gates what was already decided\n")
         show_register()
         print()
+    elif cap == "R4" and not args.learn:
+        # The process id is printed because it is the claim being made. This run
+        # shares nothing with the one that recorded the instructions except the
+        # files on disk, and a reader can check that by running the two halves
+        # minutes apart and seeing two different numbers.
+        print(f"  process {os.getpid()}, started fresh; nothing carries over but what is on disk\n")
     else:
         print(f"  model {config.MODEL} via {config.PROVIDER}\n")
+
+    if cap == "R4":
+        if args.learn:
+            passes = learn_preferences(box, run_id=run_id)
+            if passes:
+                summarise_gate(passes)
+            print(f"\n  preferences now in  {config.STATE_PATH / 'prefs.json'}")
+            print("  this process is about to exit. Run `python demo.py --cap R4` to see what changed.")
+            return 0
+        status = honour_preferences(box, args, run_id=run_id)
+        print(f"\n  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
+        return status
 
     if cap == "R3":
         passes = gate_the_irreversible(box, args, run_id=run_id)

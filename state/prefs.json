@@ -1,0 +1,28 @@
+{
+  "meeting_floor": {
+    "value": "11:00am",
+    "source": "m041",
+    "kind": "meeting_floor",
+    "minutes": 660,
+    "scope": "",
+    "stated": "my calendar rule (please remember)\nNote for the assistant: I do not take meetings before 11:00am, ever. If anyone proposes something earlier, don't accept it -- offer 11:00am or later instead. Please remember this for future scheduling.",
+    "durable": [
+      "for future",
+      "please remember",
+      "ever"
+    ]
+  },
+  "cc_on_hartwellcho.com": {
+    "value": "priya@paperjet.io",
+    "source": "m015",
+    "kind": "cc_on",
+    "scope": "hartwellcho.com",
+    "called": "hartwell & cho",
+    "stated": "Legal correspondence -- loop me in\nStanding request: from now on, please make sure I'm CC'd on anything that comes in from our lawyers at Hartwell & Cho. I don't want to miss a deadline because it landed only in your inbox. Applies to all of it, not just the term sheet.",
+    "durable": [
+      "from now on",
+      "standing request",
+      "applies to all"
+    ]
+  }
+}

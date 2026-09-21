@@ -43,6 +43,7 @@ from moya.flows.steps import FunctionStep
 import actions
 import config
 import drafting
+import prefs
 import rules
 import trace
 
@@ -55,6 +56,7 @@ ASK_CREDENTIAL = "the thread being answered carries a credential"
 ASK_CROSS_THREAD = "the draft leans on {ids}, from a different thread"
 ASK_COMMITMENT = "the draft commits the owner to a specific time or date"
 ASK_IRREVERSIBLE = "{action} cannot be undone once the retention window closes"
+ASK_STANDING = "a standing instruction changes every later run, including runs nobody is watching"
 
 # What no answer can authorise.
 NO_SUCH_MESSAGE = "there is no message {id} in the inbox"
@@ -63,6 +65,7 @@ REFUSE_EMPTY = "there is no draft to send"
 REFUSE_UNKNOWN_ADDRESS = "{address} has never appeared in this inbox"
 REFUSE_CREDENTIAL = "the draft carries a credential, which may not leave in a reply"
 REFUSE_ALREADY_SENT = "{id} was already sent; {path} exists and is treated as delivered"
+REFUSE_STANDING = "the draft names {time}, and a standing instruction says no meetings before {floor}"
 
 
 # What the human said, as three answers rather than free text. "not asked" is a
@@ -95,10 +98,17 @@ class Proposal:
     cites: tuple = ()
     thread_id: str = ""
     by: str = "model"  # who asked for it
+    # What the action needs that is not a message: for a preference write, the
+    # row `prefs.check` already validated. The gate never builds one of these
+    # itself, so an unchecked preference cannot reach `execute`.
+    payload: dict = field(default=None)
 
     def line(self):
         if self.action == "send":
             return f"send to {self.recipient}: {self.subject!r}"
+        if self.action == "preference_write":
+            row = self.payload or {}
+            return f"record a standing instruction: {row.get('key')} = {row.get('value')}"
         return f"{self.action} {self.message_id}"
 
 
@@ -131,7 +141,7 @@ class Verdict:
 
     @property
     def did_something(self):
-        return self.happened.startswith(("sent", "moved"))
+        return self.happened.startswith(("sent", "moved", "stored"))
 
     def line(self):
         return f"{self.proposal.message_id:6} {self.proposal.line()}"
@@ -180,6 +190,16 @@ def screen(proposal, message, mailbox, folders):
         path = outbox_path(proposal.message_id)
         if path.exists():
             refusals.append(REFUSE_ALREADY_SENT.format(id=proposal.message_id, path=path.name))
+        # A standing instruction is the owner's own rule, so breaking it is not
+        # something an approval can permit -- it is refused rather than asked
+        # about. This also catches a draft written before the instruction was
+        # ever stated: the text sits in `decisions.json` from an earlier run and
+        # would otherwise still be sendable.
+        early = prefs.too_early(proposal.body)
+        if early:
+            refusals.append(
+                REFUSE_STANDING.format(time=early[0], floor=prefs.clock(prefs.meeting_floor()))
+            )
 
         terms = rules.sensitive_hits(message.text() + " " + proposal.body)
         if terms:
@@ -200,6 +220,14 @@ def screen(proposal, message, mailbox, folders):
         # Always asked. The bin is reversible, but on a timer rather than on
         # someone changing their mind, so it is gated as if it were not.
         asks.append(ASK_IRREVERSIBLE.format(action="delete"))
+
+    if proposal.action == "preference_write":
+        # Always asked, for a different reason: the write is easy to undo and
+        # its consequences are not. Every run after this one behaves differently
+        # and nobody is present for those.
+        if not proposal.payload:
+            refusals.append("there is no checked preference to record")
+        asks.append(ASK_STANDING)
 
     return tuple(refusals), tuple(asks)
 
@@ -229,8 +257,10 @@ def write_outbox(proposal, verdict, run_id=""):
     path.parent.mkdir(parents=True, exist_ok=True)
     approval = "human approved" if said_yes(verdict.human_said) else "below the escalation line, not asked"
     why = "; ".join(verdict.asks) if verdict.asks else "no reason to ask"
+    copies = prefs.cc_for(proposal.recipient)
     header = [
         f"To: {proposal.recipient}",
+        *([f"Cc: {', '.join(copies)}"] if copies else []),
         f"From: {config.OWNER}",
         f"Subject: {_reply_subject(proposal.subject)}",
         f"Date: {datetime.now(timezone.utc).isoformat(timespec='seconds')}",
@@ -327,17 +357,27 @@ def execute_step(ctx):
         verdict.happened = "refused: " + "; ".join(verdict.refusals)
         return ctx
     if run.mode == "dry-run":
-        verdict.happened = "nothing (dry-run): it would have " + (
-            f"written {outbox_path(proposal.message_id).name}"
-            if proposal.action == "send"
-            else f"moved {proposal.message_id} to the bin"
-        )
+        would = {
+            "send": f"written {outbox_path(proposal.message_id).name}",
+            "delete": f"moved {proposal.message_id} to the bin",
+            "preference_write": f"stored {(proposal.payload or {}).get('key')}",
+        }
+        verdict.happened = "nothing (dry-run): it would have " + would.get(proposal.action, proposal.action)
         return ctx
     if verdict.asks and not said_yes(verdict.human_said):
         # Anything short of an explicit yes on an action that crossed the line is
         # a no. The permissive form of this test -- act unless someone said no --
         # turns a closed stdin, an interrupted prompt and a typo into approvals.
         verdict.happened = f"nothing: not approved ({verdict.human_said})"
+        return ctx
+
+    if proposal.action == "preference_write":
+        stored = prefs.store(proposal.payload)
+        replaced = f", replacing {stored['replaced']!r}" if "replaced" in stored else ""
+        verdict.happened = (
+            f"stored {proposal.payload['key']} = {proposal.payload['value']} "
+            f"from {proposal.payload['source']}{replaced}"
+        )
         return ctx
 
     if proposal.action == "send":

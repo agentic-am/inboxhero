@@ -124,9 +124,25 @@ class TestRegister(GateTestCase):
         self.assertNotIn("delete", rules.DISPOSITIONS)
         self.assertEqual(actions.REGISTER["delete"].proposer, "human")
 
-    def test_only_the_gated_actions_are_irreversible_or_expiring(self):
-        gated = {name for name, kind in actions.REGISTER.items() if kind.gated}
-        self.assertEqual(gated, {"send", "delete"})
+    def test_nothing_that_merely_moves_a_message_is_gated(self):
+        """The invariant, rather than a list of names.
+
+        An enumeration here had to be edited the moment a later part added a
+        gated action, which taught it nothing: the question is not which actions
+        are gated but whether anything is gated that should not be. A move
+        between folders is undone by moving back, so it never needs a person.
+        """
+        for name, kind in actions.REGISTER.items():
+            if not kind.gated:
+                continue
+            self.assertNotIn(
+                name,
+                ("archive", "defer", "delegate", "escalate", "flag", "reply", "draft"),
+                f"{name} only moves a message, so a person should not be asked about it",
+            )
+        # And the converse: the action that cannot be undone at all must be gated.
+        for name in actions.IRREVERSIBLE:
+            self.assertTrue(actions.REGISTER[name].gated, f"{name} is irreversible and ungated")
 
     def test_an_irreversible_action_cannot_be_undone(self):
         self.folders.apply("archive", "m002", reason="noise")

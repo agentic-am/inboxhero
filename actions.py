@@ -143,6 +143,19 @@ REGISTER = {
             "model",
             True,
         ),
+        # The one action here that moves no message. It changes how every later
+        # run behaves, which is why it is gated even though the write itself is
+        # a line in a file that `memory.forget` removes: what cannot be taken
+        # back is a reply already sent under a rule that should not have been
+        # stored. It has no entry in STATUS_FOR, so `apply` will not take it.
+        ActionKind(
+            "preference_write",
+            "records a standing instruction that changes every later run",
+            True,
+            "`memory.forget` removes it, but not the replies sent while it was in force",
+            "model",
+            True,
+        ),
     )
 }
 

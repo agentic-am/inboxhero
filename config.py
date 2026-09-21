@@ -69,6 +69,7 @@ _DEFAULTS = {
     "INBOX_FILE": "data/inbox.json",
     "STATE_DIR": "state",
     "TRACE_FILE": "trace.jsonl",
+    "DASHBOARD_FILE": "dashboard.html",
 }
 
 GATE_MODES = ("dry-run", "approval", "both")
@@ -122,7 +123,7 @@ def reload():
     global TEMPERATURE, REQUEST_TIMEOUT_S, OWNER, BATCH_SIZE
     global RETRIEVAL_K, RETRIEVAL_WINDOW_DAYS, EMBEDDINGS
     global GATE_MODE, BIN_RETENTION_DAYS
-    global INBOX_PATH, STATE_PATH, TRACE_PATH, OUTBOX_PATH
+    global INBOX_PATH, STATE_PATH, TRACE_PATH, OUTBOX_PATH, DASHBOARD_PATH
 
     LOADED_FROM_FILE = _load_env_file()
 
@@ -154,6 +155,7 @@ def reload():
     STATE_PATH = _path(_setting("STATE_DIR"))
     TRACE_PATH = _path(_setting("TRACE_FILE"))
     OUTBOX_PATH = _path(_setting("OUTBOX_DIR"))
+    DASHBOARD_PATH = _path(_setting("DASHBOARD_FILE"))
 
 
 reload()
@@ -236,6 +238,7 @@ def describe():
     print(f"  state           {STATE_PATH}")
     print(f"  outbox          {OUTBOX_PATH}")
     print(f"  trace           {TRACE_PATH}")
+    print(f"  dashboard       {DASHBOARD_PATH}")
     print(f"  ({source})")
 
 

@@ -9,6 +9,7 @@
     python demo.py --cap R4              # a separate process: load them and act on them
     python demo.py --cap R5              # the hostile inbox, and proof nothing acted on it
     python demo.py --cap R1 --rules-only # re-run the deterministic tier alone, no model call
+    python demo.py --cap R6              # the dashboard: pending, flagged, commitments
 
 Arguments are validated before anything else happens, and a bad one exits with
 status 2 and a sentence saying what was wrong. The command line is a boundary,
@@ -25,6 +26,7 @@ from moya.observability.event_bus import EventBus
 import actions
 import agents
 import config
+import dashboard
 import drafting
 import flow
 import gate
@@ -43,6 +45,7 @@ CAPABILITIES = {
     "R3": "Gate the irreversible: nothing leaves without a dry-run or a person, and every decision is logged.",
     "R4": "Standing instructions: a preference stated in one run changes how a later, separate run behaves.",
     "R5": "The hostile inbox: what it tried to make the system do, and proof that nothing did it.",
+    "R6": "One view of the run in three panes: what is pending, what was refused, and what is committed to.",
 }
 
 # R2's candidate rule, stated once and applied to whatever inbox is loaded. No
@@ -361,7 +364,7 @@ def affected_by(box, rows):
     return found
 
 
-def honour_preferences(box, args, run_id=""):
+def honour_preferences(box, args):
     """R4. A fresh process, the preferences read back off disk, and what changes.
 
     Three things are shown, because "it changes how the system behaves" is a
@@ -409,7 +412,7 @@ def honour_preferences(box, args, run_id=""):
         print(f"\n  === the gate, on the {len(stale)} draft(s) written before the instruction existed ===")
         folders = actions.load_applied()
         for proposal in stale:
-            refusals, asks = gate.screen(proposal, box.by_id(proposal.message_id), box, folders)
+            refusals, _ = gate.screen(proposal, box.by_id(proposal.message_id), box, folders)
             copies = prefs.cc_for(proposal.recipient)
             if refusals:
                 print(f"    {proposal.message_id}  REFUSED   {'; '.join(refusals)}")
@@ -440,7 +443,7 @@ def honour_preferences(box, args, run_id=""):
     return 0
 
 
-def refresh_rule_tier(box, run_id=""):
+def refresh_rule_tier(box):
     """R1 --rules-only. Run the deterministic tier again and record what it found.
 
     Every conclusion this tier reaches is a pure function of the message text, so
@@ -494,7 +497,7 @@ def refresh_rule_tier(box, run_id=""):
     return 0
 
 
-def the_hostile_inbox(box, run_id=""):
+def the_hostile_inbox(box):
     """R5. What the inbox tried to make the system do, and proof it did not.
 
     No model call. Detection already happened in the rule tier and the refusals
@@ -762,7 +765,7 @@ def main(argv=None):
     # anything next to the draft it let through. R1 starts clean.
     # A rules-only pass is an addition to the record, not a replacement for it, so
     # it appends like the capabilities that read what an earlier run decided.
-    run_id = trace.start_run(cap=cap, fresh=cap not in ("R2", "R3", "R4", "R5") and not args.rules_only)
+    run_id = trace.start_run(cap=cap, fresh=cap not in ("R2", "R3", "R4", "R5", "R6") and not args.rules_only)
 
     print(f"=== {cap}: {CAPABILITIES[cap]} ===")
     print(f"  inbox {config.INBOX_PATH.name}: {len(box)} records, {len(box.problems)} malformed")
@@ -784,12 +787,36 @@ def main(argv=None):
         print(f"  model {config.MODEL} via {config.PROVIDER}\n")
 
     if cap == "R1" and args.rules_only:
-        status = refresh_rule_tier(box, run_id=run_id)
+        status = refresh_rule_tier(box)
         print(f"  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
         return status
 
+    if cap == "R6":
+        page = dashboard.build(box)
+        print(dashboard.as_text(page))
+        data_path, html_path = dashboard.write(page)
+        pane = page["panes"]["commitments"]
+        print("\n=== run summary ===")
+        print(f"  pending actions      {len(page['panes']['pending'])}")
+        print(f"  flagged              {len(page['panes']['flagged'])}")
+        print(f"  commitments          {len(pane['dated'])} dated, {len(pane['undated'])} unresolved")
+        print(f"  from >1 message      {len(pane['derived_from_more_than_one'])}")
+        print(f"  conflicts            {len(pane['conflicts'])}")
+        print(f"  citation problems    {len(pane['citation_problems'])}")
+        print(f"  written to           {data_path}")
+        print(f"                       {html_path}")
+        trace.event(
+            "dashboard",
+            pending=len(page["panes"]["pending"]),
+            flagged=len(page["panes"]["flagged"]),
+            commitments=len(pane["dated"]) + len(pane["undated"]),
+            conflicts=len(pane["conflicts"]),
+        )
+        print(f"  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
+        return 1 if pane["citation_problems"] else 0
+
     if cap == "R5":
-        status = the_hostile_inbox(box, run_id=run_id)
+        status = the_hostile_inbox(box)
         print(f"  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
         return status
 
@@ -801,7 +828,7 @@ def main(argv=None):
             print(f"\n  preferences now in  {config.STATE_PATH / 'prefs.json'}")
             print("  this process is about to exit. Run `python demo.py --cap R4` to see what changed.")
             return 0
-        status = honour_preferences(box, args, run_id=run_id)
+        status = honour_preferences(box, args)
         print(f"\n  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
         return status
 

@@ -959,3 +959,61 @@ evidence:
 - **`hostile.py` names no message id in any statement**, so the seven are whatever
   the rule tier returns today. A test asserts that, checking code lines rather than
   comments — an id explaining *why* code works is a reason, not a branch.
+
+## Part 7: one view of the run
+
+```
+python demo.py --cap R6     # the three panes, and both files
+python commitments.py       # the calendar alone
+```
+
+`state/dashboard.json` is the data and `dashboard.html` is rendered from it, holding
+nothing the JSON does not. **No model runs** — pane 1 is `gate.screen` over the
+recorded drafts, pane 2 is what the gate refused plus `hostile.found` plus the
+drafts that failed their own checks, pane 3 is parsed from the inbox. That is what
+makes the page reproducible; a test asserts two builds are identical apart from the
+timestamp.
+
+| Pane | Count | What a row says |
+| --- | --- | --- |
+| 1. Pending actions | 9 | the message, the action, and why it cannot happen alone |
+| 2. Flagged | 12 | what was attempted, and what happened instead |
+| 3. Commitments | 11 dated, 7 unresolved | what is owed, when, and the ids it came from |
+
+A refused action is deliberately not pending — nobody is being asked about it. That
+third kind of flagged row was missing until the page was built against a run with a
+standing instruction recorded: m043's draft accepts 9:00am, the owner's rule refuses
+anything before 11:00am, so the gate stops it and it appeared in neither pane.
+Without `state/prefs.json` the counts are 10 and 11, and the difference is Part 5
+visibly changing what Part 7 shows.
+
+### The calendar is where the marks are
+
+Every commitment cites its sources, checked against the mail store exactly as a
+draft's citations are (0 problems). **Two are resolvable only by combining
+messages** — m040 asks for the board deck *"two days before the board review"* and
+names no date, while m038 says the review is *"the 18th, 10:00am"*; and the launch
+date, stated at a thread's kickoff and confirmed later as hard, folds into one entry
+citing m026 and m036. Worth noting that m040 *also* appears in pane 2 as a draft
+rejected for "stating something the inbox does not: '16th'" — the drafter could not
+reach that date from one message, and the calendar recovers it from two.
+
+Conflicts are surfaced with their certainty distinguished. m010 and m061 are a
+**CLASH**: an investor call and a dental appointment at the same resolved moment,
+Tue 15 Sep 15:00. m013 and m016 are a **maybe**: both name a Wednesday at 2:00pm,
+but neither pins the week, so asserting a collision would invent one and silence
+would hide it.
+
+Extraction is deterministic because the assignment requires reproducibility and the
+marks are on evidence, not language. Dates are anchored to the message that carried
+them ("the 18th" means that month; one already past means next month), a commitment
+may resolve against another, and **no date is guessed** — seven entries stay as
+"Wednesday" or "Friday" because no message said which week. Hostile mail is excluded
+before anything is read out of it, so an attacker's *"before end of day"* never lands
+on the owner's calendar; standing instructions and automated notices are excluded
+too, being rules and facts rather than obligations.
+
+**What it does not do:** descriptions are the sentence carrying the date rather than
+a summary, so some rows are long — but using the subject put four obligations on the
+page all reading "Launch week -- kickoff". Seven commitments have no calendar
+position. Conflicts are found on time alone, not travel or duration.

@@ -1597,3 +1597,9 @@
 {"ts": "2026-09-21T18:03:16.642+00:00", "run_id": "20260921T180316Z", "cap": "R5", "event": "hostile_audit", "refused": 7, "checks_passed": 5, "failed": []}
 {"ts": "2026-09-21T18:17:54.076+00:00", "run_id": "20260921T181754Z", "cap": "R5", "event": "run_start", "provider": "ollama", "model": "gemma4:e4b"}
 {"ts": "2026-09-21T18:17:54.113+00:00", "run_id": "20260921T181754Z", "cap": "R5", "event": "hostile_audit", "refused": 7, "checks_passed": 5, "failed": []}
+{"ts": "2026-09-21T18:40:39.460+00:00", "run_id": "20260921T184039Z", "cap": "R6", "event": "run_start", "provider": "ollama", "model": "gemma4:e4b"}
+{"ts": "2026-09-21T18:40:39.528+00:00", "run_id": "20260921T184039Z", "cap": "R6", "event": "dashboard", "pending": 9, "flagged": 11, "commitments": 18, "conflicts": 2}
+{"ts": "2026-09-21T18:47:19.680+00:00", "run_id": "20260921T184719Z", "cap": "R6", "event": "run_start", "provider": "ollama", "model": "gemma4:e4b"}
+{"ts": "2026-09-21T18:47:19.749+00:00", "run_id": "20260921T184719Z", "cap": "R6", "event": "dashboard", "pending": 9, "flagged": 12, "commitments": 18, "conflicts": 2}
+{"ts": "2026-09-21T18:52:52.681+00:00", "run_id": "20260921T185252Z", "cap": "R6", "event": "run_start", "provider": "ollama", "model": "gemma4:e4b"}
+{"ts": "2026-09-21T18:52:52.738+00:00", "run_id": "20260921T185252Z", "cap": "R6", "event": "dashboard", "pending": 9, "flagged": 12, "commitments": 18, "conflicts": 2}

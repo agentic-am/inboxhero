@@ -61,6 +61,11 @@ class Decision:
     path: str  # "rules" or "model"
     rule: str
     flags: list = field(default_factory=list)
+    # What a hostile message asked the system to do. Carried out of the rule
+    # verdict rather than left there, because the run summary and the manifest
+    # both have to report what was attempted, and a field that stops at the step
+    # that produced it cannot be reported on.
+    attempted: str = ""
     attempts: int = 0
     model_raw: str = ""
     problem: str = ""  # set when the model's answer had to be thrown away
@@ -91,6 +96,7 @@ class Decision:
             "path": self.path,
             "rule": self.rule,
             "flags": list(self.flags),
+            "attempted": self.attempted,
             "attempts": self.attempts,
             "problem": self.problem,
             "evidence": list(self.evidence),
@@ -197,7 +203,21 @@ def rule_decision(ctx):
         path="rules",
         rule=verdict.rule,
         flags=list(verdict.flags),
+        attempted=verdict.attempted or "",
     )
+    if verdict.hostile:
+        # A refusal of its own, separate from the `rule` event that decided it.
+        # The spec asks for the id and what was attempted in one place, and a
+        # reader looking for what the inbox tried to do should not have to know
+        # that the answer is a field on a routing event.
+        trace.event(
+            "refusal",
+            msg_id=verdict.message_id,
+            attempted=verdict.attempted or "unclear, but the message addresses the assistant",
+            complied=False,
+            instead="flagged and left in place; no action taken on its behalf",
+            rule=verdict.rule,
+        )
     return ctx
 
 

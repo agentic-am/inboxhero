@@ -7,6 +7,8 @@
     python demo.py --undo 7              # take back action 7, if it can be taken back
     python demo.py --cap R4 --learn      # record the owner's standing instructions, then exit
     python demo.py --cap R4              # a separate process: load them and act on them
+    python demo.py --cap R5              # the hostile inbox, and proof nothing acted on it
+    python demo.py --cap R1 --rules-only # re-run the deterministic tier alone, no model call
 
 Arguments are validated before anything else happens, and a bad one exits with
 status 2 and a sentence saying what was wrong. The command line is a boundary,
@@ -26,6 +28,7 @@ import config
 import drafting
 import flow
 import gate
+import hostile
 import mailstore
 import memory
 import prefs
@@ -39,6 +42,7 @@ CAPABILITIES = {
     "R2": "Answer properly: draft a reply grounded in a specific earlier message, citing its id.",
     "R3": "Gate the irreversible: nothing leaves without a dry-run or a person, and every decision is logged.",
     "R4": "Standing instructions: a preference stated in one run changes how a later, separate run behaves.",
+    "R5": "The hostile inbox: what it tried to make the system do, and proof that nothing did it.",
 }
 
 # R2's candidate rule, stated once and applied to whatever inbox is loaded. No
@@ -156,6 +160,12 @@ def parse_args(argv=None):
         action="store_true",
         help="with --cap R4: record the standing instructions and exit, changing nothing else",
     )
+    parser.add_argument(
+        "--rules-only",
+        action="store_true",
+        dest="rules_only",
+        help="with --cap R1: re-run the deterministic tier alone; no model call, drafts untouched",
+    )
     args = parser.parse_args(argv)
 
     if args.undo is not None:
@@ -170,6 +180,8 @@ def parse_args(argv=None):
         raise Usage("--delete is a gated action, so it runs under --cap R3")
     if args.learn and args.cap and args.cap.upper() != "R4":
         raise Usage("--learn records standing instructions, so it runs under --cap R4")
+    if args.rules_only and args.cap and args.cap.upper() != "R1":
+        raise Usage("--rules-only re-runs the triage tier, so it runs under --cap R1")
     if args.cap and args.cap.upper() not in CAPABILITIES:
         raise Usage(f"unknown capability {args.cap!r}")
     if args.cap:
@@ -428,6 +440,99 @@ def honour_preferences(box, args, run_id=""):
     return 0
 
 
+def refresh_rule_tier(box, run_id=""):
+    """R1 --rules-only. Run the deterministic tier again and record what it found.
+
+    Every conclusion this tier reaches is a pure function of the message text, so
+    running it again cannot produce a different answer than the recorded run did.
+    That is what makes this safe to do on its own: the 34 decisions the model made
+    are not touched, not re-asked, and not at risk, because no message that
+    reaches the model reaches this path at all.
+
+    It exists because the two things Part 6 has to evidence -- what each refused
+    message attempted, and a refusal logged against its id -- are produced here,
+    before any prompt is built. A full run regenerates them only as a side effect
+    of also spending half an hour re-deciding the messages the model owns, and
+    would overwrite the drafts in doing it.
+
+    The trace is appended to rather than truncated, for the same reason: this is
+    one more pass over the inbox, not a replacement for what is already recorded.
+    """
+    pipeline = flow.build_pipeline()
+    state = flow.RunState(mailbox=box)
+    for record in box.everything():
+        if rules.classify(record).handled:
+            flow.run_one(pipeline, record, state)
+
+    path = config.STATE_PATH / "decisions.json"
+    if not path.exists():
+        raise Usage(f"no recorded decisions at {path}; run `python demo.py --cap R1` first.")
+    rows = json.loads(path.read_text(encoding="utf-8"))
+
+    # `attempted` for every row, from the same call that would have set it during
+    # a full run. A message the model decided has none, which is what a full run
+    # writes for it too.
+    changed = 0
+    for row in rows:
+        message = box.by_id(row.get("message_id"))
+        was = row.get("attempted", "")
+        now = (rules.classify(message).attempted or "") if message is not None else ""
+        if was != now:
+            row["attempted"] = now
+            changed += 1
+        else:
+            row.setdefault("attempted", now)
+    path.write_text(json.dumps(rows, indent=2) + "\n", encoding="utf-8")
+
+    refused = [d for d in state.decisions if d.disposition == "flag"]
+    print(f"  {len(state.decisions)} message(s) settled by the rule tier, no model call")
+    print(f"  {len(refused)} refused, each with a refusal logged against its id")
+    print(f"  {changed} row(s) in {config.STATE_PATH.name}/decisions.json gained what was attempted")
+    print("  dispositions and drafts untouched\n")
+    for decision in refused:
+        print(f"    {decision.message_id}  {decision.attempted}")
+    return 0
+
+
+def the_hostile_inbox(box, run_id=""):
+    """R5. What the inbox tried to make the system do, and proof it did not.
+
+    No model call. Detection already happened in the rule tier and the refusals
+    already happened across four modules; this reads the artefacts those left and
+    checks Part 6's four requirements against them. A capability that only
+    asserted "we refused" would be worth nothing — the assignment's own warning
+    is that silently handling an attack is the failure.
+    """
+    rows = read_decisions()
+    threats, checks = hostile.audit(box, rows)
+
+    print(f"  {len(threats)} of {len(box.messages)} messages were refused. What each asked for:\n")
+    for threat in threats:
+        print(f"    {threat.message_id}  {threat.sender}")
+        print(f"        subject:   {threat.subject}")
+        print(f"        attempted: {threat.attempted}")
+        if threat.shapes:
+            print(f"        asks for:  {', '.join(threat.shapes)}")
+        if threat.names_addresses:
+            print(f"        names:     {', '.join(threat.names_addresses)}")
+        print()
+
+    print("  === Part 6's four requirements, checked against this run ===")
+    for check in checks:
+        print(check.line())
+    print()
+
+    failed = [c for c in checks if not c.passed]
+    print("=== run summary ===")
+    print(f"  refused              {len(threats)}")
+    print(f"  checks passed        {len(checks) - len(failed)} of {len(checks)}")
+    for check in failed:
+        print(f"    FAILED: {check.name} -- {check.detail}")
+    print(f"  outbox               {len(list(config.OUTBOX_PATH.glob('*.txt'))) if config.OUTBOX_PATH.exists() else 0} file(s), none from a refused message")
+    trace.event("hostile_audit", refused=len(threats), checks_passed=len(checks) - len(failed), failed=[c.name for c in failed])
+    return 0 if not failed else 1
+
+
 def show_register():
     """Part 4.1: the classification, printed from the table the code obeys."""
     print("  what this system does, and what can be taken back:")
@@ -595,11 +700,17 @@ def summarise(records, decisions):
     for decision in declined:
         print(f"\n  {decision.message_id}: no draft -- {decision.draft_reason}")
 
+    # Part 6.3: what was found AND what it tried to do. Reporting the reason
+    # alone says a message was refused without saying what it wanted, and
+    # silently handling an attack is the failure the assignment names.
     flagged = [d for d in decisions if d.disposition == "flag"]
     if flagged:
-        print(f"\n  flagged and left in place ({len(flagged)}):")
+        print(f"\n  refused, flagged and left in place ({len(flagged)}):")
         for decision in flagged:
             print(f"    {decision.message_id}  {decision.reason}")
+            if decision.attempted:
+                print(f"           it asked the system to: {decision.attempted}")
+        print("    nothing was sent, moved or deleted on their behalf.")
 
     retried = [d for d in decisions if d.attempts > 1]
     if retried:
@@ -649,7 +760,9 @@ def main(argv=None):
     # needs to check a citation: a `draft` event is only worth anything next to
     # the `read` events for the ids it cites, and a `gate` event is only worth
     # anything next to the draft it let through. R1 starts clean.
-    run_id = trace.start_run(cap=cap, fresh=cap not in ("R2", "R3", "R4"))
+    # A rules-only pass is an addition to the record, not a replacement for it, so
+    # it appends like the capabilities that read what an earlier run decided.
+    run_id = trace.start_run(cap=cap, fresh=cap not in ("R2", "R3", "R4", "R5") and not args.rules_only)
 
     print(f"=== {cap}: {CAPABILITIES[cap]} ===")
     print(f"  inbox {config.INBOX_PATH.name}: {len(box)} records, {len(box.problems)} malformed")
@@ -659,6 +772,8 @@ def main(argv=None):
         print("  no model is called: this part gates what was already decided\n")
         show_register()
         print()
+    elif cap == "R5":
+        print("  no model is called: detection happened in the rule tier, before any prompt existed\n")
     elif cap == "R4" and not args.learn:
         # The process id is printed because it is the claim being made. This run
         # shares nothing with the one that recorded the instructions except the
@@ -667,6 +782,16 @@ def main(argv=None):
         print(f"  process {os.getpid()}, started fresh; nothing carries over but what is on disk\n")
     else:
         print(f"  model {config.MODEL} via {config.PROVIDER}\n")
+
+    if cap == "R1" and args.rules_only:
+        status = refresh_rule_tier(box, run_id=run_id)
+        print(f"  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
+        return status
+
+    if cap == "R5":
+        status = the_hostile_inbox(box, run_id=run_id)
+        print(f"  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
+        return status
 
     if cap == "R4":
         if args.learn:

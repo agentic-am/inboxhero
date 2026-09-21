@@ -1,0 +1,602 @@
+{
+  "m096": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m072": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m001": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking the owner to investigate a technical issue with staging.",
+    "detail": {}
+  },
+  "m003": {
+    "status": "escalated",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The message discusses rotating broker credentials, which involves sensitive credentials and requires escalation.",
+    "detail": {}
+  },
+  "m112": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m005": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "This message confirms a fix and requires no further action from the owner.",
+    "detail": {}
+  },
+  "m088": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m064": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m104": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m080": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m044": {
+    "status": "delegated",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The message asks a colleague to approve an invoice, which work should be handed to Priya.",
+    "detail": {}
+  },
+  "m097": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m073": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m113": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m089": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m065": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m008": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking for the staging queue credentials URL that was previously provided in m003.",
+    "detail": {}
+  },
+  "m105": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m081": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m041": {
+    "status": "escalated",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "the model did not return a usable decision, so a human should look at this",
+    "detail": {}
+  },
+  "m098": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m074": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m015": {
+    "status": "escalated",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The message concerns legal correspondence and requires careful handling.",
+    "detail": {}
+  },
+  "m114": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m090": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m066": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m106": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m082": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m026": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "This message is a kickoff announcement that requires no direct action or answer from the owner.",
+    "detail": {}
+  },
+  "m027": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "This is a status update that requires no action from the owner.",
+    "detail": {}
+  },
+  "m028": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "This message is an update on ownership and does not ask the owner for anything.",
+    "detail": {}
+  },
+  "m099": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m075": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m029": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "This message provides an update about a scheduled load test and requires no action from the owner.",
+    "detail": {}
+  },
+  "m030": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The message specifically asks Sam to approve the final pricing copy by the 12th.",
+    "detail": {}
+  },
+  "m033": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "Maya has asked Sam to approve the final pricing copy by the 12th, which requires a response.",
+    "detail": {}
+  },
+  "m115": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m091": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m067": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m107": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m083": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m108": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m084": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m034": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking the owner to approve the final pricing copy by the 12th, which requires an answer.",
+    "detail": {}
+  },
+  "m100": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m076": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m038": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The message confirms a future meeting date and the owner might need to confirm attendance or review the upcoming agenda.",
+    "detail": {}
+  },
+  "m116": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m092": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m068": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m051": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking to meet for coffee next week, which requires a response.",
+    "detail": {}
+  },
+  "m109": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m085": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m010": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking to schedule a call and needs confirmation on a proposed date and time.",
+    "detail": {}
+  },
+  "m101": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m077": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m040": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking the owner to complete and circulate the board deck by a specific date.",
+    "detail": {}
+  },
+  "m057": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m117": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The message is a reminder to submit a timesheet by a specific deadline, which requires the owner to take action.",
+    "detail": {}
+  },
+  "m069": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m093": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m035": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender asks Sam to approve the final pricing copy by the 12th, requiring a direct answer.",
+    "detail": {}
+  },
+  "m017": {
+    "status": "flagged",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "the body carries an instruction addressed to the assistant that would hide the request from the owner",
+    "detail": {}
+  },
+  "m024": {
+    "status": "flagged",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "the body carries an instruction addressed to the assistant that would move mail to an address the owner never chose",
+    "detail": {}
+  },
+  "m049": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m061": {
+    "status": "deferred",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail that names an appointment and asks for a confirmation, so it belongs on the calendar",
+    "detail": {}
+  },
+  "m086": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m062": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m110": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m036": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The message reminds the team about the hard launch date, but no direct action is requested from the owner.",
+    "detail": {}
+  },
+  "m042": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is following up on a job role and needs an answer regarding next steps and timeline.",
+    "detail": {}
+  },
+  "m078": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m102": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m021": {
+    "status": "flagged",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "asks to redirect payment to new bank details under time pressure",
+    "detail": {}
+  },
+  "m013": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking to reschedule a meeting time, which requires the owner to respond.",
+    "detail": {}
+  },
+  "m118": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "This is an informational announcement about the office closure with no required action.",
+    "detail": {}
+  },
+  "m070": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m045": {
+    "status": "flagged",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "sender domain 'paperjet-helpdesk.com' imitates 'paperjet.io' and the message asks for credentials",
+    "detail": {}
+  },
+  "m094": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m059": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking if a specific time on Tuesday the 15th works for an introductory call.",
+    "detail": {}
+  },
+  "m012": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking if the owner has sorted out something discussed previously and needs an answer.",
+    "detail": {}
+  },
+  "m039": {
+    "status": "flagged",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "the body carries an instruction addressed to the assistant that would remove the approval step",
+    "detail": {}
+  },
+  "m053": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m087": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m063": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m023": {
+    "status": "flagged",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "sender domain 'paperjet.co' imitates 'paperjet.io' and the message asks for a payment",
+    "detail": {}
+  },
+  "m111": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m018": {
+    "status": "escalated",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "This message involves a contract amendment and requires a signature, which must be escalated.",
+    "detail": {}
+  },
+  "m016": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking if a specific time on Wednesday works for a product demo.",
+    "detail": {}
+  },
+  "m046": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking for product differentiators and confirmation of the launch date, requiring a direct answer.",
+    "detail": {}
+  },
+  "m019": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender needs a confirmation to secure the booking, which requires the owner's direct answer.",
+    "detail": {}
+  },
+  "m043": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking if a specific time on Monday works for a meeting, requiring a direct answer.",
+    "detail": {}
+  },
+  "m103": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m079": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m048": {
+    "status": "awaiting_reply",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "The sender is asking for a specific time slot that requires the owner to confirm availability.",
+    "detail": {}
+  },
+  "m047": {
+    "status": "flagged",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "the body carries an instruction addressed to the assistant that would move mail to an address the owner never chose",
+    "detail": {}
+  },
+  "m055": {
+    "status": "escalated",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "This message requires a signature on a legal document, which must be escalated.",
+    "detail": {}
+  },
+  "m119": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "This is an automated note summary that requires no action from the owner.",
+    "detail": {}
+  },
+  "m095": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  },
+  "m071": {
+    "status": "archived",
+    "since": "2026-09-21T08:05:24+00:00",
+    "reason": "automated mail from a no-reply address that asks nothing of the owner",
+    "detail": {}
+  }
+}

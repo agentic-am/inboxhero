@@ -507,3 +507,207 @@ have to fire. Nothing in the code depends on the choice; it is one line of
 - **Three drafts were rejected outright** — two for echoing the message they
   answered, one for an invented date. The checks worked; those three messages
   were dispositioned `reply` and are still unanswered.
+
+## Part 4: the things that cannot be taken back
+
+Parts 1 to 3 take exactly two actions on the mailbox, and both can be taken
+back: a message gets a disposition, and a message that is owed a reply gets a
+draft. Nothing is sent, so nothing needed a gate. This part adds the first
+action that leaves.
+
+### What this system does, and what can be undone
+
+The table below is not documentation of the code — it *is* the code. `actions.py`
+holds it as a register, the gate decides what needs a person by asking the
+register whether an action can be undone, and `--undo` refuses to reverse
+anything the register calls irreversible. A wrong row here makes the system
+behave wrongly, which is the only way a classification stays honest.
+
+| Action | What it does to the mailbox | | How it is taken back |
+| --- | --- | --- | --- |
+| `reply` | records that a reply is owed | reversible | a decision, not an act; re-running triage replaces it |
+| `draft` | writes reply text | reversible | rewrite it or discard it; nothing has left |
+| `archive` | the message leaves the inbox | reversible | `--undo` puts it back |
+| `defer` | snoozed; returns later | reversible | `--undo` puts it back |
+| `delegate` | marked as someone else's | reversible | `--undo` clears the mark |
+| `escalate` | marked for the owner | reversible | `--undo` clears the mark |
+| `flag` | marked, and left exactly where it is | reversible | `--undo` clears the mark |
+| `delete` | moved to the bin | reversible **on a timer** | `--undo` restores it, until the window closes on its own |
+| `send` | a file in `outbox/`, treated as delivered | **irreversible** | nothing |
+
+Almost everything is reversible for one structural reason: it stays inside the
+mailbox. Archiving moves a message from one folder to another, and a move within
+a mailbox the system owns is undone by moving it back. `state/mailbox.json` holds
+where each message sits and `state/actions.json` is the ordered log of how it got
+there, which is what makes `--undo` real rather than aspirational.
+
+Sending is the one action that crosses the boundary. Once a reply is delivered it
+is outside the mailbox, outside this system, and outside anyone's reach — which is
+the whole of why it is the only irreversible row in the table.
+
+`outbox/` is where delivery happens, and it is the one place this system stands in
+for something real. Speaking SMTP would add a transport, credentials and a server
+to reach, and none of that would change a single decision the gate makes; writing
+a file is the same commitment with the plumbing removed. A file in `outbox/` is
+therefore treated as delivered — not as a draft awaiting a send, and not as
+something a later run may revisit.
+
+Applying the dispositions is not bookkeeping either. Before this part one was a
+row in a file and nothing moved, so *"an archive can be undone"* was a claim about
+nothing.
+
+**Is deleting reversible?** Here, yes, and the honesty is in the detail. Deleting
+sets a status; no message is removed from the store, so `--undo` brings it back.
+What it also writes is `purge_after`, thirty days out, because a real deployment
+empties its bin — and at that point the message is gone, since there is no second
+copy. So delete is gated *as if it were irreversible*, and the approval prompt
+names the date:
+
+```
+  --- delete m059 ---
+  asked because: delete cannot be undone once the retention window closes
+  recoverable until 2026-10-21T06:50:42+00:00, then not
+```
+
+A reversibility that expires on a timer is not the same as one that waits for
+someone to change their mind. Nobody has to act for that window to close, so the
+one moment a person is guaranteed to be there is the moment they are asked.
+
+`delete` is also not in the disposition vocabulary. The model chooses among the
+six dispositions, so there is no answer it can give that becomes a proposal to
+remove mail — reaching a delete requires a person typing `--delete m059`. That is
+structural, not a matter of the model behaving.
+
+### The gate
+
+`gate.py` is the only module in the project that writes mail anywhere. It is a
+Moya pipeline of four function steps and no model at all:
+
+```
+screen  ->  ask  ->  execute  ->  record
+```
+
+The absence of a model is deliberate. What to send was decided in Part 2 and
+written in Part 3; this part decides only whether it may leave, which is a
+question about the design's rules and the owner's judgement. Asking a model again
+would mean the answer could change between the review and the send.
+
+`screen` produces two lists, and they are not the same kind of thing:
+
+- **refusals** — the action will not happen, whatever anyone says.
+- **asks** — reasons a person has to read this one before it goes.
+
+That distinction is the whole security argument. A human `yes` is permission, not
+authority: it can allow what the design allows, and it cannot unlock what the
+design refuses. Approving a reply to a message the rule tier flagged still sends
+nothing.
+
+| Refused, and no answer changes it | Why |
+| --- | --- |
+| the message was flagged by the rule tier | flagged mail is neither answered nor moved |
+| the recipient has never appeared in this inbox | the allowlist is the inbox's own addresses |
+| the draft carries a credential | a credential may not leave in a reply |
+| the draft is empty | there is nothing to send |
+| `outbox/<id>.txt` already exists | it was sent; a sent message is not sent twice |
+
+### Where the line was drawn, and what it cost
+
+Seventeen drafts came out of Part 3. Asking about all seventeen is the failure
+the assignment names: the owner approves seventeen things without reading any of
+them. **Ten are asked about; seven go through logged but unasked.**
+
+A send is asked about when any of these is true:
+
+1. the message or the draft touches money, credentials, a contract, legal or press
+2. the thread being answered carries a credential
+3. the draft leans on evidence from a different thread
+4. **the draft commits the owner to a specific time or date**
+
+The fourth is the one worth arguing for. Accepting a meeting uses none of the
+vocabulary that makes a message sensitive — it is the most ordinary sentence in
+the inbox — and it is still a commitment nobody can walk back once it has gone.
+Without it the line asked about six, and these went out unread:
+
+| | the draft that would have been sent |
+| --- | --- |
+| m043 | *"Monday at 9:00am works…"* — the owner wrote *"I do not take meetings before 11:00am, ever"* |
+| m010 | *"Tuesday the 15th at 3:00pm works for me."* |
+| m016 | *"Wednesday at 2:00pm works for us."* |
+| m013 | an internal 1:1 being moved to a named time |
+
+**Internal versus external is deliberately not a criterion.** It is the obvious
+line and it is the wrong axis: it would ask about a one-line thank-you to a
+vendor and stay silent on m008, which answers a thread carrying a production
+credential. Content is what can hurt, so content is what is checked — m013 is
+internal and asked about, m051 is external and is not.
+
+**What that trades away.** Seven sends leave without anyone reading them, and one
+of them is wrong. m051 replies *"…while I'm in SF next week"* when it is the
+**sender** who is in SF. Every word comes from the message and only who-does-what
+is reversed; no lexical check separates that from a correct reply, so no
+content-based line catches it. It is the same attribution inversion documented in
+Part 3, and drawing the line by domain would not fix it either — it would only
+trade seven unread routine replies for a different seven.
+
+The second cost is subtler: m043 is now *asked about* rather than *prevented*.
+The owner's rule about 11:00am is written down in this inbox. Relying on someone
+to notice the violation in an approval prompt is weaker than the system holding
+the rule, and the prompt is the last place to catch it rather than the first.
+
+### Every gated decision, logged
+
+Three fields, on every proposal, whatever the outcome — including the ones nobody
+was asked about, because "nobody was asked" is itself a decision:
+
+```json
+{"event": "gate", "msg_id": "m046", "action": "send", "mode": "approval",
+ "proposed": "send to editor@techbrief.news: 'Quick question for our launch coverage'",
+ "needs_human": ["the message or the draft touches coverage",
+                 "the draft leans on m036, from a different thread",
+                 "the draft commits the owner to a specific time or date"],
+ "human_said": "yes",
+ "happened": "sent: wrote m046.txt, m046 marked answered"}
+```
+
+`human_said` is one of three answers, and `not asked` is not a refusal. That
+sounds obvious; it was a live bug, because `"not asked".startswith("no")` is
+true and the first version of this read every unasked send as declined. The test
+that pins it is `test_not_asked_is_not_a_refusal`.
+
+The answer is a no unless it is an explicit yes. A closed stdin, an interrupted
+prompt and a typo are all refusals, because the permissive form of that test —
+act unless someone says no — turns an unattended run into blanket approval.
+
+### One file per message, and nowhere else
+
+```
+To: editor@techbrief.news
+From: sam@paperjet.io
+Subject: Re: Quick question for our launch coverage
+Date: 2026-09-21T06:50:12+00:00
+In-Reply-To: m046
+Thread: t-press
+Cites: m036
+Approved-By: human approved (the message or the draft touches coverage; the
+  draft leans on m036, from a different thread; the draft commits the owner to
+  a specific time or date)
+Run: 20260921T065012Z
+
+The launch date is confirmed as the 20th, according to a previous note.
+```
+
+The headers are the audit. A reader holding only this file can tell who it went
+to, what it answers, what it leaned on, and whether a person approved it or
+whether it fell below the line.
+
+### Running it
+
+```
+python demo.py --cap R3                   # the dry-run, then the approval pass
+python demo.py --cap R3 --gate dry-run    # say what it would do, write nothing
+python demo.py --cap R3 --gate approval   # ask, then act
+python demo.py --delete m059              # a person proposes a delete
+python demo.py --undo 7                   # take back action 7
+python gate.py                            # screen everything, ask nothing, write nothing
+python actions.py                         # print the register and the folders
+```

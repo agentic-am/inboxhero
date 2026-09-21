@@ -403,6 +403,17 @@ def _preference_statement(message, text):
     return any(phrase in text for phrase in PREFERENCE_PHRASES)
 
 
+def sensitive_hits(text):
+    """Which sensitive terms this text carries, as whole words.
+
+    Public because the triage tier is not the only thing that has to know what
+    "sensitive" means here. The gate draws its escalation line on the same list,
+    and a second copy of the vocabulary would be one that drifts: a term added
+    for triage would quietly stop being a reason to ask a human.
+    """
+    return _word_hits((text or "").lower(), SENSITIVE)
+
+
 def classify(record):
     """The rule tier's verdict for one record. Never raises."""
     if isinstance(record, mailstore.Malformed):

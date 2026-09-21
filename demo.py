@@ -3,6 +3,8 @@
     python demo.py --cap R1              # zero the inbox: one disposition per message
     python demo.py --cap R1 --limit 12   # the same, over the first 12 messages by time
     python demo.py --msg m024            # one message, with its trace
+    python demo.py --cap R3              # put every irreversible action through the gate
+    python demo.py --undo 7              # take back action 7, if it can be taken back
 
 Arguments are validated before anything else happens, and a bad one exits with
 status 2 and a sentence saying what was wrong. The command line is a boundary,
@@ -16,10 +18,12 @@ import sys
 
 from moya.observability.event_bus import EventBus
 
+import actions
 import agents
 import config
 import drafting
 import flow
+import gate
 import mailstore
 import retrieval
 import rules
@@ -29,6 +33,7 @@ import trace
 CAPABILITIES = {
     "R1": "Zero the inbox: every message gets exactly one disposition and a reason.",
     "R2": "Answer properly: draft a reply grounded in a specific earlier message, citing its id.",
+    "R3": "Gate the irreversible: nothing leaves without a dry-run or a person, and every decision is logged.",
 }
 
 # R2's candidate rule, stated once and applied to whatever inbox is loaded. No
@@ -134,10 +139,25 @@ def parse_args(argv=None):
     parser.add_argument("--limit", type=int, help="process only the first N messages, by timestamp")
     parser.add_argument("--batch", type=int, help="messages per model call; overrides BATCH_SIZE for this run")
     parser.add_argument("--quiet", action="store_true", help="print the summary only, not every row")
+    parser.add_argument("--gate", help=f"gate mode for this run: {', '.join(config.GATE_MODES)}")
+    parser.add_argument(
+        "--delete",
+        metavar="ID",
+        help="propose deleting a message; only a person may ask for this, and the gate always asks",
+    )
+    parser.add_argument("--undo", type=int, metavar="N", help="take back action N from state/actions.json")
     args = parser.parse_args(argv)
 
-    if not (args.cap or args.all or args.msg):
-        raise Usage("nothing to do: pass --cap, --msg or --all")
+    if args.undo is not None:
+        return args
+    if not (args.cap or args.all or args.msg or args.delete):
+        raise Usage("nothing to do: pass --cap, --msg, --delete or --all")
+    if args.gate and args.gate.lower() not in config.GATE_MODES:
+        raise Usage(f"--gate must be one of {', '.join(config.GATE_MODES)}, got {args.gate!r}")
+    if args.gate:
+        args.gate = args.gate.lower()
+    if args.delete and args.cap and args.cap.upper() != "R3":
+        raise Usage("--delete is a gated action, so it runs under --cap R3")
     if args.cap and args.cap.upper() not in CAPABILITIES:
         raise Usage(f"unknown capability {args.cap!r}")
     if args.cap:
@@ -247,6 +267,130 @@ def summarise_drafts(results):
     return 0 if cited else 1
 
 
+def show_register():
+    """Part 4.1: the classification, printed from the table the code obeys."""
+    print("  what this system does, and what can be taken back:")
+    for kind in actions.REGISTER.values():
+        mark = "reversible  " if kind.reversible else "IRREVERSIBLE"
+        asked = "gated" if kind.gated else "     "
+        print(f"    {kind.name:9} {mark} {asked}  {kind.effect}")
+        print(f"              {'undo: ' + kind.undo}")
+
+
+def read_decisions():
+    path = config.STATE_PATH / "decisions.json"
+    if not path.exists():
+        raise Usage(
+            f"no recorded decisions at {path}. R3 gates what R1 decided and R2 drafted, "
+            "so run `python demo.py --cap R1` first."
+        )
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (ValueError, OSError) as error:
+        raise Usage(f"could not read {path}: {error}") from error
+
+
+def gate_the_irreversible(box, args, run_id=""):
+    """R3. Every irreversible action, through one gate, with the whole trail logged.
+
+    No model is called. What to send was decided in R1 and written in R2; this
+    part decides only whether it may leave, and that is a question about the
+    design's rules and the owner's judgement, not about language. Re-asking a
+    model here would mean the answer could change between the review and the
+    send.
+    """
+    rows = read_decisions()
+    proposals = gate.proposals_from_decisions(rows, box)
+    if args.delete:
+        message = box.by_id(args.delete)
+        if message is None:
+            raise Usage(f"no message {args.delete!r} in {config.INBOX_PATH.name}")
+        # A person asked for this one. The model has no way to reach it: `delete`
+        # is not in the disposition vocabulary, so nothing it can answer turns
+        # into a proposal to remove mail.
+        proposals = [
+            gate.Proposal(
+                message_id=message.id,
+                action="delete",
+                subject=message.subject,
+                thread_id=message.thread_id,
+                by="human",
+            )
+        ]
+        print(f"  a person asked to delete {message.id}: {message.summary()}\n")
+    elif args.limit:
+        proposals = proposals[: args.limit]
+
+    mode = args.gate or config.GATE_MODE
+    print(f"  {len(proposals)} proposal(s) from {config.STATE_PATH.name}/decisions.json, gate mode {mode}\n")
+
+    passes = gate.run(proposals, box, mode=mode, run_id=run_id)
+    for name, done in passes:
+        report_pass(name, done)
+    folders = passes[-1][1].folders
+    folders.save()
+    return passes
+
+
+def report_pass(name, done):
+    """What one pass of the gate did, in the gate's own three fields."""
+    header = "would do (nothing is written)" if name == "dry-run" else "did"
+    print(f"  === {name}: what the gate {header} ===")
+    for verdict in done.verdicts:
+        print(f"    {verdict.line()}")
+        if verdict.blocked:
+            # A refused proposal never reaches a person, so its reasons to ask
+            # are not printed as though someone had been asked and said nothing.
+            for reason in verdict.refusals:
+                print(f"           refused: {reason}")
+        else:
+            for reason in verdict.asks:
+                print(f"           asked:   {reason}")
+        print(f"           said:    {verdict.human_said}")
+        print(f"           happened: {verdict.happened}")
+
+    asked = [v for v in done.verdicts if v.needs_human and not v.blocked]
+    blocked = [v for v in done.verdicts if v.blocked]
+    acted = [v for v in done.verdicts if v.did_something]
+    print(
+        f"\n    {len(done.verdicts)} proposal(s): {len(blocked)} refused outright, "
+        f"{len(asked)} crossed the escalation line, {len(done.verdicts) - len(asked) - len(blocked)} went unasked"
+    )
+    written = len([v for v in acted if v.path])
+    print(f"    outbox/ writes: {written}\n")
+
+
+def summarise_gate(passes):
+    print("\n=== run summary ===")
+    for name, done in passes:
+        acted = [v for v in done.verdicts if v.did_something]
+        approved = [v for v in done.verdicts if v.approved]
+        declined = [v for v in done.verdicts if v.declined]
+        print(
+            f"  {name:9} {len(done.verdicts):3} proposed, {len(approved)} approved by a person, "
+            f"{len(declined)} declined, {len(acted)} happened"
+        )
+    folders = passes[-1][1].folders
+    print(f"  mailbox now          {', '.join(f'{k}={v}' for k, v in folders.tally().items())}")
+    print(f"  outbox               {config.OUTBOX_PATH}")
+    sent = sorted(p.name for p in config.OUTBOX_PATH.glob("*.txt")) if config.OUTBOX_PATH.exists() else []
+    print(f"  files in outbox      {len(sent)}" + (f"  {', '.join(sent)}" if sent else ""))
+    return 0
+
+
+def undo(seq):
+    """Take back one recorded action, if the register says it can be taken back."""
+    folders = actions.load()
+    try:
+        row = folders.undo(seq)
+    except ValueError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
+    folders.save()
+    print(f"  undid action {seq}: {row['message_id']} back to {row['from_status']} (was {row['to_status']})")
+    return 0
+
+
 def summarise(records, decisions):
     """The run summary. `undecided` is the first thing Part 2 is checked on."""
     by_disposition, by_path = {}, {}
@@ -319,6 +463,9 @@ def main(argv=None):
         print(f"error: {error}", file=sys.stderr)
         return 1
 
+    if args.undo is not None:
+        return undo(args.undo)
+
     try:
         box = mailstore.load()
     except mailstore.InboxFileError as error:
@@ -334,17 +481,31 @@ def main(argv=None):
     elif args.limit:
         records = records[: args.limit]
 
-    cap = args.cap or ("R1" if args.all or args.msg else None)
-    # R2 continues the run R1 recorded rather than starting over, so it appends
-    # instead of truncating. The trace then holds the triage of all 100 messages
-    # and the drafting that followed from it, which is what a reader needs to
-    # check a citation: a `draft` event is only worth anything next to the
-    # `read` events for the ids it cites. Every other capability starts clean.
-    trace.start_run(cap=cap, fresh=(cap != "R2"))
+    cap = args.cap or ("R3" if args.delete else "R1" if args.all or args.msg else None)
+    # R2 and R3 continue the run R1 recorded rather than starting over, so they
+    # append instead of truncating. The trace then holds the triage of all 100
+    # messages and the drafting that followed from it, which is what a reader
+    # needs to check a citation: a `draft` event is only worth anything next to
+    # the `read` events for the ids it cites, and a `gate` event is only worth
+    # anything next to the draft it let through. R1 starts clean.
+    run_id = trace.start_run(cap=cap, fresh=cap not in ("R2", "R3"))
 
     print(f"=== {cap}: {CAPABILITIES[cap]} ===")
     print(f"  inbox {config.INBOX_PATH.name}: {len(box)} records, {len(box.problems)} malformed")
-    print(f"  model {config.MODEL} via {config.PROVIDER}\n")
+    if cap == "R3":
+        # Said plainly, because it is the reason this part is reproducible: the
+        # gate is rules and a person, and neither changes between two runs.
+        print("  no model is called: this part gates what was already decided\n")
+        show_register()
+        print()
+    else:
+        print(f"  model {config.MODEL} via {config.PROVIDER}\n")
+
+    if cap == "R3":
+        passes = gate_the_irreversible(box, args, run_id=run_id)
+        status = summarise_gate(passes)
+        print(f"  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
+        return status
 
     if cap == "R2":
         if args.msg:
@@ -373,7 +534,16 @@ def main(argv=None):
     decisions = zero_the_inbox(box, records, quiet=args.quiet)
     missing = summarise(records, decisions)
     path = _write_decisions(decisions)
+    # A disposition that changes nothing is a note, not an action, and "an
+    # archive can be undone" would be a claim about nothing. Applying them puts
+    # every message in a folder and writes an ordered log, which is what makes
+    # the reversible half of Part 4's classification checkable.
+    folders, applied = actions.apply_decisions(decisions)
+    folders.save()
     print(f"\n  decisions written to {path}")
+    print(f"  mailbox updated      {applied} message(s) moved: " + ", ".join(
+        f"{k}={v}" for k, v in folders.tally().items()
+    ))
     print(f"  trace written to     {config.TRACE_PATH}  ({len(trace.read())} events)")
     return 0 if missing == 0 else 1
 

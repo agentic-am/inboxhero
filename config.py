@@ -52,12 +52,26 @@ _DEFAULTS = {
     "RETRIEVAL_K": "5",
     "RETRIEVAL_WINDOW_DAYS": "",
     "EMBEDDINGS": "off",
+    # The gate (Part 4). `dry-run` prints what it would do and writes nothing,
+    # `approval` asks before each action that crosses the escalation line, and
+    # `both` does the dry-run first and then the approval pass. `both` is the
+    # default because the two answer different questions: the dry-run says what
+    # the system wants to do while nothing is at stake, and the approval pass
+    # asks about the few that matter while the answer still changes something.
+    "GATE_MODE": "both",
+    "OUTBOX_DIR": "outbox",
+    # How long a deleted message stays recoverable. Nothing in this build purges
+    # the bin; the value is what the approval prompt quotes when it warns the
+    # owner when the message would stop being recoverable.
+    "BIN_RETENTION_DAYS": "30",
     # The inbox and where the run leaves its footprints.
     "OWNER": "sam@paperjet.io",
     "INBOX_FILE": "data/inbox.json",
     "STATE_DIR": "state",
     "TRACE_FILE": "trace.jsonl",
 }
+
+GATE_MODES = ("dry-run", "approval", "both")
 
 
 class ConfigError(ValueError):
@@ -107,7 +121,8 @@ def reload():
     global GEMINI_API_KEY, GEMINI_MODEL, CALL_SPACING_SECONDS, MAX_RETRIES
     global TEMPERATURE, REQUEST_TIMEOUT_S, OWNER, BATCH_SIZE
     global RETRIEVAL_K, RETRIEVAL_WINDOW_DAYS, EMBEDDINGS
-    global INBOX_PATH, STATE_PATH, TRACE_PATH
+    global GATE_MODE, BIN_RETENTION_DAYS
+    global INBOX_PATH, STATE_PATH, TRACE_PATH, OUTBOX_PATH
 
     LOADED_FROM_FILE = _load_env_file()
 
@@ -130,11 +145,15 @@ def reload():
     RETRIEVAL_WINDOW_DAYS = int(window) if window else None  # None = unbounded
     EMBEDDINGS = _setting("EMBEDDINGS").strip().lower()
 
+    GATE_MODE = _setting("GATE_MODE").strip().lower()
+    BIN_RETENTION_DAYS = int(_setting("BIN_RETENTION_DAYS"))
+
     OWNER = _setting("OWNER").strip().lower()
 
     INBOX_PATH = _path(_setting("INBOX_FILE"))
     STATE_PATH = _path(_setting("STATE_DIR"))
     TRACE_PATH = _path(_setting("TRACE_FILE"))
+    OUTBOX_PATH = _path(_setting("OUTBOX_DIR"))
 
 
 reload()
@@ -169,6 +188,10 @@ def problems():
         found.append("RETRIEVAL_WINDOW_DAYS must be 1 or more, or empty for unbounded.")
     if EMBEDDINGS not in ("off", "on"):
         found.append(f"EMBEDDINGS={EMBEDDINGS!r} must be off or on.")
+    if GATE_MODE not in GATE_MODES:
+        found.append(f"GATE_MODE={GATE_MODE!r} is not one of {', '.join(GATE_MODES)}.")
+    if BIN_RETENTION_DAYS < 1:
+        found.append(f"BIN_RETENTION_DAYS must be 1 or more, got {BIN_RETENTION_DAYS}.")
     if not INBOX_PATH.exists():
         found.append(f"INBOX_FILE {INBOX_PATH} does not exist.")
     return found
@@ -207,9 +230,11 @@ def describe():
     print(f"  temperature     {TEMPERATURE}, timeout {REQUEST_TIMEOUT_S:.0f}s")
     window = f"{RETRIEVAL_WINDOW_DAYS}d" if RETRIEVAL_WINDOW_DAYS else "unbounded"
     print(f"  retrieval       k={RETRIEVAL_K}, keyword window {window}, embeddings {EMBEDDINGS}")
+    print(f"  gate            {GATE_MODE}, deleted mail recoverable for {BIN_RETENTION_DAYS} days")
     print(f"  owner           {OWNER}")
     print(f"  inbox           {INBOX_PATH}")
     print(f"  state           {STATE_PATH}")
+    print(f"  outbox          {OUTBOX_PATH}")
     print(f"  trace           {TRACE_PATH}")
     print(f"  ({source})")
 

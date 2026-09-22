@@ -29,6 +29,7 @@ from dataclasses import dataclass
 import config
 import prefs
 import provider
+import tone
 import trace
 
 # A draft is a reply, not an essay. Long drafts are usually the model padding
@@ -431,6 +432,12 @@ def build_draft_prompt(message, evidence, withhold_secret=False, owner=None):
         lines.append(standing)
         lines.append("")
 
+    # How this correspondent writes. A rule, never an example: two of their own
+    # sentences would teach the register faster and would also come back copied
+    # verbatim, which is a failure this project has already had twice.
+    lines.append(tone.for_prompt(message.sender))
+    lines.append("")
+
     lines.extend(
         [
             "Rules, all of which are checked after you answer:",
@@ -661,6 +668,19 @@ def parse_draft(raw, message, evidence, mailbox, prompt=""):
         raise DraftRejected(
             f"the draft names {early[0]}, and the owner does not take meetings before {floor}; "
             f"do not name an earlier time at all -- offer {floor} or later"
+        )
+
+    # Too familiar for this correspondent. One-directional on purpose: a reply
+    # stiffer than the person who wrote is merely stiff, and one that is too
+    # casual to outside counsel or a journalist is the sort of thing that gets
+    # forwarded. Only `formal` correspondents can fail this, and only when a
+    # register has been learned for them.
+    register = tone.register_of(message.sender)
+    familiar = tone.too_familiar(text, register)
+    if familiar:
+        raise DraftRejected(
+            f"the draft uses {familiar[0]!r}, which is too familiar for this correspondent; "
+            "they write formally, so write back formally"
         )
 
     withheld = contains_secret(cited_text)

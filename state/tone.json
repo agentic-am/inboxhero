@@ -1,0 +1,143 @@
+{
+  "aria.f@northwind.vc": {
+    "address": "aria.f@northwind.vc",
+    "register": "neutral",
+    "messages": 2,
+    "why": [
+      "nothing distinctive either way"
+    ]
+  },
+  "chair@paperjet-board.org": {
+    "address": "chair@paperjet-board.org",
+    "register": "neutral",
+    "messages": 1,
+    "why": [
+      "nothing distinctive either way"
+    ]
+  },
+  "dan@paperjet.io": {
+    "address": "dan@paperjet.io",
+    "register": "neutral",
+    "messages": 2,
+    "why": [
+      "nothing distinctive either way"
+    ]
+  },
+  "devika@paperjet.io": {
+    "address": "devika@paperjet.io",
+    "register": "neutral",
+    "messages": 2,
+    "why": [
+      "5.4 contractions per 100 words"
+    ]
+  },
+  "editor@techbrief.news": {
+    "address": "editor@techbrief.news",
+    "register": "neutral",
+    "messages": 1,
+    "why": [
+      "6.2 contractions per 100 words"
+    ]
+  },
+  "events@thegrandvenue.com": {
+    "address": "events@thegrandvenue.com",
+    "register": "neutral",
+    "messages": 1,
+    "why": [
+      "4.9 contractions per 100 words"
+    ]
+  },
+  "facilities@paperjet.io": {
+    "address": "facilities@paperjet.io",
+    "register": "neutral",
+    "messages": 1,
+    "why": [
+      "nothing distinctive either way"
+    ]
+  },
+  "hr@paperjet.io": {
+    "address": "hr@paperjet.io",
+    "register": "neutral",
+    "messages": 1,
+    "why": [
+      "nothing distinctive either way"
+    ]
+  },
+  "j.hartwell@hartwellcho.com": {
+    "address": "j.hartwell@hartwellcho.com",
+    "register": "formal",
+    "messages": 1,
+    "why": [
+      "signs off with a name, title or firm",
+      "no contractions"
+    ]
+  },
+  "jordan.okafor@gmail.com": {
+    "address": "jordan.okafor@gmail.com",
+    "register": "neutral",
+    "messages": 1,
+    "why": [
+      "1 exclamation(s)",
+      "no contractions"
+    ]
+  },
+  "m.cho@hartwellcho.com": {
+    "address": "m.cho@hartwellcho.com",
+    "register": "formal",
+    "messages": 2,
+    "why": [
+      "signs off with a name, title or firm",
+      "no contractions"
+    ]
+  },
+  "maya@paperjet.io": {
+    "address": "maya@paperjet.io",
+    "register": "neutral",
+    "messages": 2,
+    "why": [
+      "4.3 contractions per 100 words"
+    ]
+  },
+  "notes@paperjet.io": {
+    "address": "notes@paperjet.io",
+    "register": "neutral",
+    "messages": 1,
+    "why": [
+      "nothing distinctive either way"
+    ]
+  },
+  "partners@acme-corp.com": {
+    "address": "partners@acme-corp.com",
+    "register": "neutral",
+    "messages": 1,
+    "why": [
+      "3.6 contractions per 100 words"
+    ]
+  },
+  "priya@paperjet.io": {
+    "address": "priya@paperjet.io",
+    "register": "neutral",
+    "messages": 6,
+    "why": [
+      "2 exclamation(s)"
+    ]
+  },
+  "raghav@paperjet.io": {
+    "address": "raghav@paperjet.io",
+    "register": "neutral",
+    "messages": 5,
+    "why": [
+      "nothing distinctive either way"
+    ]
+  },
+  "wintermute@oldfriends.net": {
+    "address": "wintermute@oldfriends.net",
+    "register": "casual",
+    "messages": 1,
+    "why": [
+      "100% of sentences start lowercase",
+      "1 exclamation(s)",
+      "4.3 contractions per 100 words"
+    ]
+  }
+}

@@ -36,7 +36,11 @@ import memory
 import prefs
 import retrieval
 import rules
+import threads
+import tone
 import trace
+import waiting
+import explain as explain_mod
 
 # The manifest's --cap ids, one entry per capability.
 CAPABILITIES = {
@@ -46,6 +50,10 @@ CAPABILITIES = {
     "R4": "Standing instructions: a preference stated in one run changes how a later, separate run behaves.",
     "R5": "The hostile inbox: what it tried to make the system do, and proof that nothing did it.",
     "R6": "One view of the run in three panes: what is pending, what was refused, and what is committed to.",
+    "X1": "Who owes the next move, on every thread at once -- including the mail you sent that nobody answered.",
+    "X2": "A long thread reduced to the one question nobody has answered, with the message it came from.",
+    "X3": "Replies written in the register the correspondent writes in, learned from their own mail.",
+    "X4": "Why did the system do that? The story of one message, replayed from the trace.",
 }
 
 # R2's candidate rule, stated once and applied to whatever inbox is loaded. No
@@ -443,6 +451,102 @@ def honour_preferences(box, args):
     return 0
 
 
+def who_owes_the_next_move(box):
+    """X1. Every thread, grouped by whose move it is. No model call."""
+    found = waiting.survey(box)
+    print(waiting.render(found))
+    nudge = waiting.oldest_unanswered(found)
+    by_state = waiting.grouped(found)
+    print("\n=== run summary ===")
+    print(f"  threads              {len(found)}")
+    print(f"  waiting on you       {len(by_state['you'])}")
+    print(f"  waiting on them      {len(by_state['them'])}   (no mail client raises these)")
+    print(f"  closed               {len(by_state['closed'])}")
+    print(f"  worth chasing        {len(nudge)}" + (f"  {', '.join(t.ids[-1] for t in nudge)}" if nudge else ""))
+    trace.event("waiting_survey", threads=len(found), you=len(by_state["you"]), them=len(by_state["them"]))
+    return 0
+
+
+def the_open_question(box, args):
+    """X2. The one thing still unanswered in each long thread."""
+    agent = agents.thread_agent()
+    candidates = threads.worth_it(box)
+    if args.msg:
+        message = box.by_id(args.msg)
+        if message is None:
+            raise Usage(f"no message {args.msg!r} in {config.INBOX_PATH.name}")
+        candidates = [(t, m) for t, m in candidates if t == message.thread_id]
+        if not candidates:
+            raise Usage(f"{args.msg} is in thread {message.thread_id!r}, which has fewer than {threads.WORTH_SUMMARISING} messages")
+
+    print(f"  {len(candidates)} thread(s) with {threads.WORTH_SUMMARISING} or more messages, longest first\n")
+    answered = 0
+    for thread_id, messages in candidates:
+        answer = threads.summarise(agent, thread_id, messages)
+        print(threads.render(answer, messages))
+        print()
+        if answer.get("open"):
+            answered += 1
+    print("=== run summary ===")
+    print(f"  threads read         {len(candidates)}")
+    print(f"  open questions found {answered}")
+    return 0 if answered else 1
+
+
+def tone_per_correspondent(box, args):
+    """X3. The register learned for each correspondent, and what it changes."""
+    profiles = tone.learn(box)
+    print(tone.describe(profiles))
+    path = tone.save(profiles)
+    print(f"\n  written to {path}")
+
+    rows = {r["message_id"]: r for r in read_decisions()}
+    as_rows = {a: p.row() for a, p in profiles.items()}
+    print("\n  what a reply to each waiting message has to sound like:")
+    shown = 0
+    for message in box.messages:
+        if rows.get(message.id, {}).get("disposition") != "reply":
+            continue
+        register = tone.register_of(message.sender, as_rows)
+        note = "  <- a casual reply here would be a mistake" if register == tone.FORMAL else ""
+        print(f"    {message.id}  {message.sender:32} {register}{note}")
+        shown += 1
+    counts = {}
+    for profile in profiles.values():
+        counts[profile.register] = counts.get(profile.register, 0) + 1
+    print("\n=== run summary ===")
+    print(f"  correspondents       {len(profiles)}  (automated senders are not profiled)")
+    print("  registers            " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
+    print(f"  messages awaiting a reply  {shown}")
+    trace.event("tone_learned", correspondents=len(profiles), **counts)
+    return 0
+
+
+def why_did_it_do_that(box, args):
+    """X4. One message's story, replayed from the trace. No model call."""
+    events = trace.read()
+    if args.msg:
+        wanted = [args.msg]
+    else:
+        counts = {}
+        for event in events:
+            if event.get("msg_id") and not event.get("event", "").startswith(explain_mod.MACHINERY):
+                counts[event["msg_id"]] = counts.get(event["msg_id"], 0) + 1
+        wanted = [mid for mid, _ in sorted(counts.items(), key=lambda kv: -kv[1])[:3]]
+        print(f"  no message named; showing the three with the most recorded: {', '.join(wanted)}\n")
+
+    told = 0
+    for message_id in wanted:
+        answer = explain_mod.explain(message_id, box, events)
+        print(explain_mod.render(answer))
+        print()
+        told += 1 if answer["steps"] else 0
+    print("=== run summary ===")
+    print(f"  messages explained   {told} of {len(wanted)}")
+    print(f"  from                 {config.TRACE_PATH.name}, {len(events)} events")
+    return 0 if told else 1
+
+
 def refresh_rule_tier(box):
     """R1 --rules-only. Run the deterministic tier again and record what it found.
 
@@ -765,7 +869,9 @@ def main(argv=None):
     # anything next to the draft it let through. R1 starts clean.
     # A rules-only pass is an addition to the record, not a replacement for it, so
     # it appends like the capabilities that read what an earlier run decided.
-    run_id = trace.start_run(cap=cap, fresh=cap not in ("R2", "R3", "R4", "R5", "R6") and not args.rules_only)
+    run_id = trace.start_run(
+        cap=cap, fresh=cap not in ("R2", "R3", "R4", "R5", "R6", "X1", "X2", "X3", "X4") and not args.rules_only
+    )
 
     print(f"=== {cap}: {CAPABILITIES[cap]} ===")
     print(f"  inbox {config.INBOX_PATH.name}: {len(box)} records, {len(box.problems)} malformed")
@@ -790,6 +896,24 @@ def main(argv=None):
         status = refresh_rule_tier(box)
         print(f"  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
         return status
+
+    if cap == "X1":
+        status = who_owes_the_next_move(box)
+        print(f"  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
+        return status
+
+    if cap == "X2":
+        status = the_open_question(box, args)
+        print(f"  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
+        return status
+
+    if cap == "X3":
+        status = tone_per_correspondent(box, args)
+        print(f"  trace appended to    {config.TRACE_PATH}  ({len(trace.read())} events)")
+        return status
+
+    if cap == "X4":
+        return why_did_it_do_that(box, args)
 
     if cap == "R6":
         page = dashboard.build(box)

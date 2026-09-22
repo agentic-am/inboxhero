@@ -1017,3 +1017,116 @@ too, being rules and facts rather than obligations.
 a summary, so some rows are long — but using the subject put four obligations on the
 page all reading "Launch week -- kickoff". Seven commitments have no calendar
 position. Conflicts are found on time alone, not travel or duration.
+
+## Part 8: four capabilities of our own
+
+```
+python demo.py --cap X1              # who owes the next move, on every thread
+python demo.py --cap X2              # the open question in each long thread
+python demo.py --cap X3              # the register each correspondent writes in
+python demo.py --cap X4 --msg m043   # why the system did what it did
+```
+
+Chosen against a question the assignment does not ask but a buyer would: what does
+this do that Gmail and Outlook do not? Both already filter, triage, snooze,
+suggest replies and warn about calendar clashes. Neither defends an AI agent
+against instructions inside mail, gates what it may do, lets a stated preference
+constrain it, or explains an automated decision — which is where Parts 4 to 7 sit,
+and where these four build.
+
+| | Capability | Tier | What it costs |
+| --- | --- | --- | --- |
+| **X1** | Who owes the next move, on every thread | A | no model |
+| **X2** | A long thread reduced to its open question | B | one call per thread |
+| **X3** | The register a correspondent writes in, learned and enforced | C | no model |
+| **X4** | Why the system did what it did, from the trace | A | no model |
+
+### X1 — who owes the next move
+
+88 threads: **19 waiting on you, 1 waiting on them, 68 closed.** The one is the
+interesting one. m044 is the owner asking Priya to approve a contractor invoice
+seven days ago; nobody replied, and no mail client will ever raise it because the
+message is in `sent`, not the inbox. At a hundred messages a day that is a
+convenience; at eleven thousand it is the only question that still scales, because
+the useful reduction stops being "what arrived" and becomes "what is stuck, and on
+whom".
+
+Building it corrected a modelling error. `delegate` was closing threads, which is
+what hid m044 — handing something to a colleague moves whose move it is, it does
+not finish it. A second fix: a note the owner mails themselves waits on nobody, so
+the standing instruction in m041 is not a chase item.
+
+### X2 — the open question
+
+```
+=== t-launch -- 9 messages, Launch week -- kickoff ===
+  OPEN: Can you approve the final pricing copy by the 12th?
+  asked by: priya@paperjet.io   owed by: sam@paperjet.io
+  blocks:   Nothing else on the page can ship until that line is locked.
+  from:     m030        position: message 5 of 9
+```
+
+**Message 5 of 9**, which is the whole point: long threads end with people
+reporting progress, and the thing that is stuck was asked in the middle. Reading
+the last message finds a status update.
+
+The model writes it and Python checks it, as everywhere else here. A citation is
+checked **against the thread**, not the mail store — a real id from another
+conversation is still a citation that does not support what it is attached to, and
+the store would happily accept it. An answer naming an internal id in its prose is
+rejected too, since a reader has no m030.
+
+### X3 — the register the correspondent writes in
+
+One voice for a whole inbox is wrong in two directions and only one of them costs
+anything. Answering an old friend like a contract is stiff; answering outside
+counsel or a journalist like an old friend gets forwarded. So the register is
+**measured** from each correspondent's own mail — contractions per hundred words,
+exclamations, lowercase sentence starts, sentence length, whether they sign off
+with a firm — stored in `state/tone.json`, put into the drafting prompt as a rule,
+and checked again in Python afterwards.
+
+17 correspondents, 2 formal, 1 casual, 14 neutral. Automated senders are not
+profiled: nobody replies to them, and two machine notices scored casual purely
+because their templates start sentences in lowercase.
+
+Two decisions worth stating. **The check is one-directional** — it rejects a draft
+too familiar for a formal correspondent and says nothing about one that is too
+stiff, because the cost is entirely on one side. And **a profile is not gated,
+where a standing preference is**: a preference is something somebody *asserts*, and
+m039 forges exactly that from the owner's own address, whereas a register is
+measured from how a person actually writes, recomputable at any time, and cannot
+widen what the system may do. The human stays in the loop where it matters, on the
+send, through the Part 4 gate.
+
+### X4 — why did it do that
+
+The cheapest capability here and the one the others lean on. It reads
+`trace.jsonl` and nothing else; if the answer is not recorded it says so rather
+than reconstructing a plausible story, because a plausible story is exactly what an
+audit trail exists to avoid.
+
+```
+09-19 20:03:38 [R1] validate   accepted 'reply' on attempt 1
+09-19 20:04:11 [R1] draft      drafted, citing nothing
+09-21 07:15:04 [R3] gate       proposed send to aria.f@northwind.vc; asked because the
+                               draft commits the owner to a specific time or date
+09-21 11:59:15 [R4] draft      no draft [rejected]: the draft names 9:00am, and the owner
+                               does not take meetings before 11:00am
+```
+
+m043's whole history across four capabilities in one view — triaged, drafted,
+gated, then refused by a standing instruction recorded two days later.
+
+### What these do not do
+
+- **X2 has two threads to work on.** Only three threads in this inbox hold more
+  than one message, and one of those holds two. The capability is right; the corpus
+  is thin.
+- **X3's registers are coarse.** Three buckets from six countable signals, and
+  fourteen of seventeen correspondents land in the middle one. It separates the
+  cases that matter — a law firm from an old friend — and would need more than
+  counting to do better.
+- **X4 is only as good as the trace.** A run started with `--cap R1` truncates the
+  file, so an explanation can be lost by a later run. That is a real hazard and it
+  bit once during this build.

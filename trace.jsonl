@@ -1603,3 +1603,15 @@
 {"ts": "2026-09-21T18:47:19.749+00:00", "run_id": "20260921T184719Z", "cap": "R6", "event": "dashboard", "pending": 9, "flagged": 12, "commitments": 18, "conflicts": 2}
 {"ts": "2026-09-21T18:52:52.681+00:00", "run_id": "20260921T185252Z", "cap": "R6", "event": "run_start", "provider": "ollama", "model": "gemma4:e4b"}
 {"ts": "2026-09-21T18:52:52.738+00:00", "run_id": "20260921T185252Z", "cap": "R6", "event": "dashboard", "pending": 9, "flagged": 12, "commitments": 18, "conflicts": 2}
+{"ts": "2026-09-22T05:40:01.410+00:00", "run_id": "20260922T054001Z", "cap": "X1", "event": "run_start", "provider": "ollama", "model": "gemma4:e4b"}
+{"ts": "2026-09-22T05:40:01.422+00:00", "run_id": "20260922T054001Z", "cap": "X1", "event": "waiting_survey", "threads": 88, "you": 19, "them": 1}
+{"ts": "2026-09-22T05:44:13.503+00:00", "run_id": "20260922T054413Z", "cap": "X2", "event": "run_start", "provider": "ollama", "model": "gemma4:e4b"}
+{"ts": "2026-09-22T05:44:13.516+00:00", "run_id": "20260922T054413Z", "cap": "X2", "event": "thread_prompt", "thread_id": "t-launch", "messages": 9, "chars": 3432}
+{"ts": "2026-09-22T05:45:03.153+00:00", "run_id": "20260922T054413Z", "cap": "X2", "event": "llm_call", "provider": "ollama", "model": "gemma4:e4b", "messages": 2, "prompt_tokens": 1430, "completion_tokens": 76, "elapsed_s": 49.64, "attempts": 1}
+{"ts": "2026-09-22T05:45:03.154+00:00", "run_id": "20260922T054413Z", "cap": "X2", "event": "thread_summary", "thread_id": "t-launch", "open": true, "cites": ["m030"], "attempts": 1}
+{"ts": "2026-09-22T05:45:03.155+00:00", "run_id": "20260922T054413Z", "cap": "X2", "event": "thread_prompt", "thread_id": "t-api", "messages": 4, "chars": 2207}
+{"ts": "2026-09-22T05:45:30.089+00:00", "run_id": "20260922T054413Z", "cap": "X2", "event": "llm_call", "provider": "ollama", "model": "gemma4:e4b", "messages": 2, "prompt_tokens": 972, "completion_tokens": 72, "elapsed_s": 26.93, "attempts": 1}
+{"ts": "2026-09-22T05:45:30.090+00:00", "run_id": "20260922T054413Z", "cap": "X2", "event": "thread_summary", "thread_id": "t-api", "open": true, "cites": ["m008"], "attempts": 1}
+{"ts": "2026-09-22T05:46:17.540+00:00", "run_id": "20260922T054617Z", "cap": "X3", "event": "run_start", "provider": "ollama", "model": "gemma4:e4b"}
+{"ts": "2026-09-22T05:46:17.554+00:00", "run_id": "20260922T054617Z", "cap": "X3", "event": "tone_learned", "correspondents": 17, "neutral": 14, "casual": 1, "formal": 2}
+{"ts": "2026-09-22T05:50:00.156+00:00", "run_id": "20260922T055000Z", "cap": "X4", "event": "run_start", "provider": "ollama", "model": "gemma4:e4b"}

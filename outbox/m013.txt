@@ -1,0 +1,11 @@
+To: raghav@paperjet.io
+From: sam@paperjet.io
+Subject: Re: move our 1:1?
+Date: 2026-09-22T12:38:27+00:00
+In-Reply-To: m013
+Thread: t-sched1
+Cites: (none)
+Approved-By: human approved (the draft commits the owner to a specific time or date)
+Run: 20260922T123817Z
+
+Wednesday at 2:00pm does not work for me. Can we aim for 11:00am or later instead?

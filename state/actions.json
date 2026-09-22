@@ -1298,5 +1298,199 @@
     "reason": "automated mail from a no-reply address that asks nothing of the owner",
     "detail": {},
     "undone": false
+  },
+  {
+    "seq": 101,
+    "at": "2026-09-22T12:38:17+00:00",
+    "action": "send",
+    "message_id": "m001",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to raghav@paperjet.io",
+    "detail": {
+      "outbox": "m001.txt",
+      "cites": []
+    },
+    "undone": false
+  },
+  {
+    "seq": 102,
+    "at": "2026-09-22T12:38:17+00:00",
+    "action": "send",
+    "message_id": "m033",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to maya@paperjet.io",
+    "detail": {
+      "outbox": "m033.txt",
+      "cites": []
+    },
+    "undone": false
+  },
+  {
+    "seq": 103,
+    "at": "2026-09-22T12:38:17+00:00",
+    "action": "send",
+    "message_id": "m034",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to dan@paperjet.io",
+    "detail": {
+      "outbox": "m034.txt",
+      "cites": []
+    },
+    "undone": false
+  },
+  {
+    "seq": 104,
+    "at": "2026-09-22T12:38:22+00:00",
+    "action": "send",
+    "message_id": "m051",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to wintermute@oldfriends.net",
+    "detail": {
+      "outbox": "m051.txt",
+      "cites": []
+    },
+    "undone": false
+  },
+  {
+    "seq": 105,
+    "at": "2026-09-22T12:38:24+00:00",
+    "action": "send",
+    "message_id": "m010",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to aria.f@northwind.vc",
+    "detail": {
+      "outbox": "m010.txt",
+      "cites": []
+    },
+    "undone": false
+  },
+  {
+    "seq": 106,
+    "at": "2026-09-22T12:38:24+00:00",
+    "action": "send",
+    "message_id": "m117",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to hr@paperjet.io",
+    "detail": {
+      "outbox": "m117.txt",
+      "cites": []
+    },
+    "undone": false
+  },
+  {
+    "seq": 107,
+    "at": "2026-09-22T12:38:24+00:00",
+    "action": "send",
+    "message_id": "m035",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to raghav@paperjet.io",
+    "detail": {
+      "outbox": "m035.txt",
+      "cites": []
+    },
+    "undone": false
+  },
+  {
+    "seq": 108,
+    "at": "2026-09-22T12:38:26+00:00",
+    "action": "send",
+    "message_id": "m036",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to priya@paperjet.io",
+    "detail": {
+      "outbox": "m036.txt",
+      "cites": []
+    },
+    "undone": false
+  },
+  {
+    "seq": 109,
+    "at": "2026-09-22T12:38:27+00:00",
+    "action": "send",
+    "message_id": "m042",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to jordan.okafor@gmail.com",
+    "detail": {
+      "outbox": "m042.txt",
+      "cites": []
+    },
+    "undone": false
+  },
+  {
+    "seq": 110,
+    "at": "2026-09-22T12:38:27+00:00",
+    "action": "send",
+    "message_id": "m013",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to raghav@paperjet.io",
+    "detail": {
+      "outbox": "m013.txt",
+      "cites": []
+    },
+    "undone": false
+  },
+  {
+    "seq": 111,
+    "at": "2026-09-22T12:38:27+00:00",
+    "action": "send",
+    "message_id": "m059",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to devika@paperjet.io",
+    "detail": {
+      "outbox": "m059.txt",
+      "cites": []
+    },
+    "undone": false
+  },
+  {
+    "seq": 112,
+    "at": "2026-09-22T12:38:37+00:00",
+    "action": "send",
+    "message_id": "m046",
+    "from_status": "awaiting_reply",
+    "to_status": "answered",
+    "reversible": false,
+    "by": "model",
+    "reason": "answered and sent to editor@techbrief.news",
+    "detail": {
+      "outbox": "m046.txt",
+      "cites": [
+        "m036"
+      ]
+    },
+    "undone": false
   }
 ]

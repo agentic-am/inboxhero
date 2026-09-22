@@ -1130,3 +1130,98 @@ gated, then refused by a standing instruction recorded two days later.
 - **X4 is only as good as the trace.** A run started with `--cap R1` truncates the
   file, so an explanation can be lost by a later run. That is a real hazard and it
   bit once during this build.
+
+## Part 9: the pitch
+
+```
+python demo.py --all         # every capability, in manifest order
+cat capabilities.json        # the machine-readable manifest
+```
+
+`CAPABILITIES.md` and `capabilities.json` are the graded artefact. They list all
+ten capabilities — the required six as R1 to R6, the four of our own as X1 to X4 —
+each with the command that runs it, the outcome someone else can look at, and the
+evidence to check it against. Everything the assignment asked to be "stated in the
+manifest" lives there: the framework choice, the disposition vocabulary, the
+reversibility register, the retrieval approach, the escalation line and what it
+traded away.
+
+The tiers are the assignment's own: **A** is one lookup and one output, **B** is
+multi-step or reasoning across several messages, **C** is genuinely agentic —
+planning, memory, human-in-the-loop, or recovering when something goes wrong. The
+ten land as two A, four B and four C.
+
+One capability is deliberately not claimed. Part 8's list of suggestions includes
+extracting commitments and deadlines into a structured list, which is the same
+work Part 7 requires in pane 3 and which `commitments.py` already does. It is
+answered under R6 rather than counted a second time under a new id.
+
+## Final Report
+
+### 1. What did you refuse to automate?
+
+m043 — an investor asking whether the owner can do "Monday at 9:00am, before
+markets open". The system will not answer that on its own, and two different
+mechanisms say so. The standing instruction recorded from m041 reaches the
+drafter's prompt, so the reply that comes out offers 11:00am or later rather than
+the time that was asked for; the gate then asks about it anyway, because the
+draft commits the owner to a specific time or date. In the recorded run the owner
+answered no and nothing was sent. The line is there because a time
+commitment is the most ordinary-looking sentence in the inbox — it uses none of
+the vocabulary that makes a message read as sensitive — and it is still something
+nobody can walk back once it has gone. Drawing the line on what *sounds*
+important would have let this one through; drawing it on what cannot be undone
+catches it.
+
+### 2. Where does untrusted text enter your system?
+
+Untrusted text enters at `mailstore.load`, which validates every record and
+escalates a malformed one rather than raising, and it is quoted into the model's
+context only inside an explicitly marked untrusted-data block built by
+`agents.quote_untrusted` — never concatenated into the instruction part of the
+prompt. The model is given **no tools**: its entire output is a JSON proposal,
+parsed by `agents.parse_proposal` against the allowed-disposition list the rule
+tier computed *before* the call, so a disposition the rules removed is rejected
+whatever the model says. To make this system act on an attacker's behalf they
+would have to defeat four independent things: the rule tier's detection, the
+validator's allowed list, `gate.screen`'s refusals — which no human "yes" can
+override — and the recipient allowlist, which is drawn from addresses already in
+the inbox. Prompt wording is not one of the four, which is the point: the three
+addresses the hostile messages named are all unreachable because they appear
+nowhere in the inbox, not because anything was told to ignore them.
+
+### 3. Who is accountable when it sends the wrong thing?
+
+The owner is answerable — the system acts in their name, and the gate exists so
+that the ones that matter were read by them first. What the system owes is
+traceability, and it provides it at three levels: a `gate` event recording the
+proposal, the reasons it was asked about, what the person said and what happened;
+`state/actions.json` as the ordered log that `--undo` reverses; and
+`outbox/<id>.txt` as the artefact itself. `python demo.py --cap X4 --msg <id>`
+replays the whole chain for one message. This is not hypothetical: the reply to
+m051 says *"catch up next week when I'm in SF"* when it is the **sender** who is
+in SF, and the recorded run shows the gate asking about it, the owner answering
+yes, and `outbox/m051.txt` being written. That is the honest shape of the answer
+— the system routed it to a person, the person approved it, and the record says
+so, which is what makes the failure attributable rather than mysterious. A gate
+buys a review; it does not buy a guarantee.
+
+### 4. Name your own machinery.
+
+The **Agents** are `agents.py`'s `InboxAgent(OllamaAgent)` subclasses — a triage
+agent, a drafter, a preference reader and a thread reader — registered through
+`build_registry()`. The **Tasks** are the steps of the per-message `Pipeline` in
+`flow.py` (`rule`, `retrieve`, `prompt`, `TriageStep`, `validate`, `draft`,
+`record`) and the four in `gate.py` (`screen`, `ask`, `execute`, `record`). The
+**Crew** is `demo.py`, which owns the `--cap` dispatch and composes the pipelines
+per capability, and the **router** is the `BranchStep` fed by `rules.py`, which
+decides whether a model is called at all. The things a framework would have given
+us and we built ourselves are **structured output with retries** and the
+**approval step**: Moya has no JSON mode and no retry, so `agents.parse_proposal`
+plus `TriageStep(retries=…)` reject and re-ask, and `provider.py` handles 429s,
+backoff and provider fallback; ADK would have given us `output_schema` and
+`ToolConfirmation` for roughly that. On balance Moya helped and a heavier
+framework would have hurt — the `FunctionStep`-after-`AgentStep` shape is exactly
+where the post-hoc checks belong, and everything else we needed was a safety net
+that had to be ours anyway, because a gate implemented by someone else's
+confirmation callback is a gate whose refusals we do not control.

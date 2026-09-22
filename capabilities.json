@@ -1,0 +1,127 @@
+{
+  "student": "withheld from the public repository; filled in for submission",
+  "repo": "https://github.com/agentic-am/inboxhero",
+  "system": {
+    "framework": "moya",
+    "model": "The configured model answers; PROVIDER and MODEL are read from the environment by config.py and nothing in the code depends on which one is set. Developed against a local model on Ollama to avoid rate limits, with a hosted fallback used only when Ollama cannot be reached at all. A smaller local model was tried first and was not steady enough at the drafting stage; every one of its failures was caught by the post-hoc checks rather than by the model.",
+    "messages_processed": 100,
+    "rule_handled": 66,
+    "dispositions": [
+      "reply",
+      "archive",
+      "defer",
+      "delegate",
+      "escalate",
+      "flag"
+    ],
+    "retrieval": "thread-walk + keyword. Four tiers, model path only: scope, thread walk, SQLite FTS5 with BM25, and an exact entity lookup. Embeddings are off behind a seam (EMBEDDINGS=off); recall on the nine hand-read groundings is 9 of 9 without them.",
+    "irreversible": [
+      "send"
+    ],
+    "reversible": [
+      "reply",
+      "draft",
+      "archive",
+      "defer",
+      "delegate",
+      "escalate",
+      "flag",
+      "delete",
+      "preference_write"
+    ],
+    "gate": "both",
+    "preference_demo": "m041: the owner does not take meetings before 11:00am, ever. On a later run in a separate process it is read back off disk and put into the drafter's prompt, so the reply to m043 - which asks for 9:00am - offers 11:00am or later instead, and the same rule is checked again in Python afterwards as a backstop. A second instruction from m015 puts priya@paperjet.io on the reply to the lawyers."
+  },
+  "capabilities": [
+    {
+      "id": "R1",
+      "name": "Zero the inbox",
+      "tier": "B",
+      "claim": "Gives every one of the 100 messages exactly one disposition and a plain-English reason, routing the obvious ones through rules before any model is called.",
+      "command": "python demo.py --cap R1",
+      "observable": "Prints a row per message with its disposition, its reason and which path decided it, then a summary reading 'processed 100', 'undecided 0', 'rules 66', 'model 34'. Writes state/decisions.json. The rule tier is not log-only: its verdict goes into the prompt as the ALLOWED list and is applied again in Python afterwards, so a disposition outside that list is rejected and the message escalated. 'python demo.py --cap R1 --rules-only' re-runs the deterministic tier alone with no model call.",
+      "evidence": "trace.jsonl, events tagged cap=R1: a 'rule' and a 'decision' event per message id, plus 'prompt', 'retrieve' and 'validate' for the 34 that reached the model, and 'proposal_rejected' where the validator overrode the model."
+    },
+    {
+      "id": "R2",
+      "name": "Grounded reply",
+      "tier": "B",
+      "claim": "Drafts replies grounded in specific earlier messages, records the ids each drew on and checks them against the mail store; when the inbox does not hold the answer it says so and drafts nothing.",
+      "command": "python demo.py --cap R2",
+      "observable": "For each of the 21 candidates prints the retrieved evidence, the draft, and a 'cited: [...]' line naming real ids: 16 drafts written, 1 citing mail, 4 with no usable draft and 1 the inbox cannot answer. m046 is the grounded one - the keyword tier reaches m036 across a thread boundary, and the draft cites it, which is why walking the thread alone is not enough here. m012 ('the thing') is reported as 'could not answer' rather than drafted, and m008 is refused a draft although retrieval found m003 correctly, because every attempt failed one of the post-hoc checks. The summary keeps the three ways of not drafting apart. Nothing is sent and no file is written.",
+      "evidence": "trace.jsonl, events tagged cap=R2: 'draft' events whose cited ids appear as earlier 'read' events, and 'draft_rejected' where a draft failed one of the eight post-hoc checks. The nine hand-read groundings are a regression test in tests/test_part3.py, scoring 9 of 9."
+    },
+    {
+      "id": "R3",
+      "name": "Gate the irreversible",
+      "tier": "C",
+      "claim": "Nothing leaves without either a dry-run that writes nothing or a person answering that one action; what was proposed, what the person said and what happened is logged for every one.",
+      "command": "python demo.py --cap R3",
+      "observable": "Runs the dry-run pass and then the approval pass over the 16 recorded drafts. Each line gives the proposal, the reasons it was refused or asked about, what the human said and what happened; the dry-run footer reads 'outbox/ writes: 0' because it writes nothing by design. Ten of the sixteen cross the escalation line and are asked about one at a time; six go through logged but unasked. In the recorded run the person approved 6 and declined 4, so 12 sends happened and 'outbox/' holds exactly those 12 files. Refusals and asks are different things: a human 'yes' can allow what the design allows and cannot unlock what the design refuses, so approving a reply to a flagged message still sends nothing.",
+      "evidence": "trace.jsonl, events tagged cap=R3 ('gate' events carrying the proposal, the asks, the human's answer and the outcome); state/actions.json, the ordered log that 'python demo.py --undo N' reverses."
+    },
+    {
+      "id": "R4",
+      "name": "Standing instructions",
+      "tier": "C",
+      "claim": "A preference stated in one run is recorded and, on a later run in a process that has fully exited and restarted, changes what the drafter writes and what the gate allows. A preference may only narrow what the system does alone, never widen it.",
+      "command": "python demo.py --cap R4",
+      "observable": "'python demo.py --cap R4 --learn' extracts the standing instructions, writes state/prefs.json and exits. The command above is a fresh process, and prints its own pid to say so: it reads two instructions back off disk, prints them as the drafter is told them, names the 4 messages affected (m018, m043, m048, m055), shows what the gate now does with the drafts already written, and redrafts the affected replies with the instruction in force. The instruction reaches the prompt, not just the log - m043 asks for 9:00am and the reply offers 11:00am or later without being told again, and m048's send carries 'Cc: priya@paperjet.io'. The same rule is applied again in Python afterwards, so a draft naming an earlier time is rejected even if the model ignores it. A preference is itself gated (preference_write), which is what stops a spoofed instruction in the inbox from becoming one.",
+      "evidence": "state/prefs.json persisting between two separate processes; trace.jsonl events tagged cap=R4: 'pref_extracted', 'pref_prompt', and the 'draft_rejected' events naming the rule that rejected them."
+    },
+    {
+      "id": "R5",
+      "name": "Refuse what the inbox tells it to do",
+      "tier": "C",
+      "claim": "Detects instructions addressed to the assistant and fraud inside message bodies, refuses them, leaves them exactly where they are, reports what each attempted, and then checks the refusal against the run's own artefacts instead of asserting it.",
+      "command": "python demo.py --cap R5",
+      "observable": "Prints that 7 of 100 messages were refused, each with sender, subject, what it attempted and the addresses it named, then five checks against the artefacts, all passing: 0 outbox writes caused by one, 0 of the 3 addresses they named reachable through the gate, 7 refusal events for 7 refused messages, 7 still in the inbox and unmoved, and no decision grounded in a refused message. The first check is worth something here because the run really did send: 'outbox/' holds 12 files and none of them came from a refused message. Nothing in this capability does the refusing - detection happened in the rule tier and the refusals happened across four modules; this reads what they left.",
+      "evidence": "trace.jsonl, events tagged cap=R5 ('hostile_audit' carrying the check results) together with the 7 'refusal' events recorded under cap=R1; state/mailbox.json showing all 7 still in the inbox."
+    },
+    {
+      "id": "R6",
+      "name": "One view of the run",
+      "tier": "B",
+      "claim": "Builds a three-pane view from a completed run - pending actions, flagged, commitments - with no model call, every commitment citing the ids it came from, and conflicts called out rather than silently listed.",
+      "command": "python demo.py --cap R6",
+      "observable": "Writes state/dashboard.json and renders dashboard.html from it, holding nothing the JSON does not. Summary: 4 pending, 24 flagged, 11 dated commitments and 7 with no resolvable date, 2 derived from more than one message, 2 conflicts, 0 citation problems. Pending is low and flagged is high because the gate really ran: 12 messages are answered rather than waiting, and what a person declined is reported as refused rather than left pending - nobody is being asked about it any more. The board deck is resolved from m040 ('two days before the board review') plus m038 ('the 18th, 10:00am'); m010 and m061 are a CLASH at Tue 15 Sep 15:00; m013 and m016 are reported as a 'maybe' because neither pins the week, so neither inventing a collision nor hiding one. 'python commitments.py' runs the calendar alone and prints the same structured list. Two builds are identical apart from the timestamp.",
+      "evidence": "state/dashboard.json and dashboard.html; trace.jsonl events tagged cap=R6 ('dashboard')."
+    },
+    {
+      "id": "X1",
+      "name": "Who owes the next move",
+      "tier": "A",
+      "claim": "Groups every thread in the mailbox by whose move it is, including mail the owner sent that nobody answered - which no mail client raises, because it is not in the inbox.",
+      "command": "python demo.py --cap X1",
+      "observable": "Prints all 88 threads grouped as waiting on you (19), waiting on them (1) and closed (68), and names the one worth chasing: m044, the owner asking a colleague to approve a contractor invoice seven days ago with no reply. Only archive and flag close a thread - handing something to a colleague moves whose move it is, it does not finish it - and a note the owner mails themselves waits on nobody. No model call.",
+      "evidence": "trace.jsonl, events tagged cap=X1 ('waiting_survey' carrying the three counts)."
+    },
+    {
+      "id": "X2",
+      "name": "The open question in a long thread",
+      "tier": "B",
+      "claim": "Reduces a long thread to the one question nobody has answered, with the message it came from, so the real ask does not stay buried in the middle.",
+      "command": "python demo.py --cap X2",
+      "observable": "Reads the 2 threads holding 3 or more messages, longest first, and prints each one's open question, who asked it, who owes it, what it blocks and its position; both are found. For the 9-message launch thread the answer is m030, message 5 of 9: reading the last message finds a status update instead. For the 4-message staging thread it is m008, the request for credentials that the drafter refused to answer in R2 - the question is real, and saying so is not the same as sending the secret. The model writes the answer and Python checks it - a citation is checked against that thread, not the mail store, so a real id from another conversation is rejected, and an answer naming an internal id in its prose is rejected too.",
+      "evidence": "trace.jsonl, events tagged cap=X2 ('thread_prompt', 'thread_summary')."
+    },
+    {
+      "id": "X3",
+      "name": "The register a correspondent writes in",
+      "tier": "C",
+      "claim": "Learns from each correspondent's own mail whether they write formally, casually or neutrally, stores it, and constrains the reply to match - measured from their text, never asked of a model.",
+      "command": "python demo.py --cap X3",
+      "observable": "Profiles 17 correspondents, automated senders excluded, from contractions, exclamations, lowercase sentence starts, sentence length and a formal sign-off: casual=1, formal=2, neutral=14, written to state/tone.json with the reasons for each. Then lists the 21 messages awaiting a reply against the register each answer has to be in, marking where a casual reply would be a mistake. The check is one-directional: it fires only on 'formal', because being too stiff with a casual correspondent is awkward while being too familiar with a formal one is a real error. A tone profile is deliberately not gated - unlike a standing instruction it is an observation, recomputable from the mail, unforgeable, and it cannot widen what the system may do.",
+      "evidence": "state/tone.json; trace.jsonl events tagged cap=X3 ('tone_learned' carrying the register counts)."
+    },
+    {
+      "id": "X4",
+      "name": "Why did it do that",
+      "tier": "A",
+      "claim": "Replays one message's whole story out of the trace - what the rules said, what was retrieved, what the model proposed, what the validator did, what the gate did - and invents nothing: where the trace holds no record it says so.",
+      "command": "python demo.py --cap X4 --msg m043",
+      "observable": "Prints 11 recorded steps for m043 in time order, tagged with the capability that produced each, ending in the final disposition and its reason. The story crosses four capabilities: the rule tier abstaining and naming what it allowed, retrieval offering m010 and m016, the validator accepting on attempt 1, the gate asking twice because the draft commits the owner to a time - once in the dry-run where nobody was asked, and once in the approval pass where the human said 'no' and nothing happened - and the redraft under the standing instruction. Run without --msg it explains the three messages with the most recorded events. No model call.",
+      "evidence": "trace.jsonl itself: the steps are read back from the events every earlier capability recorded against that message id, and the run is marked with a 'run_start' tagged cap=X4."
+    }
+  ]
+}

@@ -12,10 +12,13 @@
     "detail": {}
   },
   "m001": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "The sender is asking the owner to investigate a technical issue with staging.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:17+00:00",
+    "reason": "answered and sent to raghav@paperjet.io",
+    "detail": {
+      "outbox": "m001.txt",
+      "cites": []
+    }
   },
   "m003": {
     "status": "escalated",
@@ -210,10 +213,13 @@
     "detail": {}
   },
   "m033": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "Maya has asked Sam to approve the final pricing copy by the 12th, which requires a response.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:17+00:00",
+    "reason": "answered and sent to maya@paperjet.io",
+    "detail": {
+      "outbox": "m033.txt",
+      "cites": []
+    }
   },
   "m115": {
     "status": "archived",
@@ -258,10 +264,13 @@
     "detail": {}
   },
   "m034": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "The sender is asking the owner to approve the final pricing copy by the 12th, which requires an answer.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:17+00:00",
+    "reason": "answered and sent to dan@paperjet.io",
+    "detail": {
+      "outbox": "m034.txt",
+      "cites": []
+    }
   },
   "m100": {
     "status": "archived",
@@ -300,10 +309,13 @@
     "detail": {}
   },
   "m051": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "The sender is asking to meet for coffee next week, which requires a response.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:22+00:00",
+    "reason": "answered and sent to wintermute@oldfriends.net",
+    "detail": {
+      "outbox": "m051.txt",
+      "cites": []
+    }
   },
   "m109": {
     "status": "archived",
@@ -318,10 +330,13 @@
     "detail": {}
   },
   "m010": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "The sender is asking to schedule a call and needs confirmation on a proposed date and time.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:24+00:00",
+    "reason": "answered and sent to aria.f@northwind.vc",
+    "detail": {
+      "outbox": "m010.txt",
+      "cites": []
+    }
   },
   "m101": {
     "status": "archived",
@@ -348,10 +363,13 @@
     "detail": {}
   },
   "m117": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "The message is a reminder to submit a timesheet by a specific deadline, which requires the owner to take action.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:24+00:00",
+    "reason": "answered and sent to hr@paperjet.io",
+    "detail": {
+      "outbox": "m117.txt",
+      "cites": []
+    }
   },
   "m069": {
     "status": "archived",
@@ -366,10 +384,13 @@
     "detail": {}
   },
   "m035": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "The sender asks Sam to approve the final pricing copy by the 12th, requiring a direct answer.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:24+00:00",
+    "reason": "answered and sent to raghav@paperjet.io",
+    "detail": {
+      "outbox": "m035.txt",
+      "cites": []
+    }
   },
   "m017": {
     "status": "flagged",
@@ -414,16 +435,22 @@
     "detail": {}
   },
   "m036": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "The message reminds the team about the hard launch date, but no direct action is requested from the owner.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:26+00:00",
+    "reason": "answered and sent to priya@paperjet.io",
+    "detail": {
+      "outbox": "m036.txt",
+      "cites": []
+    }
   },
   "m042": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "The sender is following up on a job role and needs an answer regarding next steps and timeline.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:27+00:00",
+    "reason": "answered and sent to jordan.okafor@gmail.com",
+    "detail": {
+      "outbox": "m042.txt",
+      "cites": []
+    }
   },
   "m078": {
     "status": "archived",
@@ -444,10 +471,13 @@
     "detail": {}
   },
   "m013": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "The sender is asking to reschedule a meeting time, which requires the owner to respond.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:27+00:00",
+    "reason": "answered and sent to raghav@paperjet.io",
+    "detail": {
+      "outbox": "m013.txt",
+      "cites": []
+    }
   },
   "m118": {
     "status": "archived",
@@ -474,10 +504,13 @@
     "detail": {}
   },
   "m059": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "The sender is asking if a specific time on Tuesday the 15th works for an introductory call.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:27+00:00",
+    "reason": "answered and sent to devika@paperjet.io",
+    "detail": {
+      "outbox": "m059.txt",
+      "cites": []
+    }
   },
   "m012": {
     "status": "awaiting_reply",
@@ -534,10 +567,15 @@
     "detail": {}
   },
   "m046": {
-    "status": "awaiting_reply",
-    "since": "2026-09-21T08:05:24+00:00",
-    "reason": "The sender is asking for product differentiators and confirmation of the launch date, requiring a direct answer.",
-    "detail": {}
+    "status": "answered",
+    "since": "2026-09-22T12:38:37+00:00",
+    "reason": "answered and sent to editor@techbrief.news",
+    "detail": {
+      "outbox": "m046.txt",
+      "cites": [
+        "m036"
+      ]
+    }
   },
   "m019": {
     "status": "awaiting_reply",

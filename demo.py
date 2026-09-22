@@ -860,7 +860,42 @@ def main(argv=None):
     elif args.limit:
         records = records[: args.limit]
 
-    cap = args.cap or ("R3" if args.delete else "R1" if args.all or args.msg else None)
+    if args.all and not args.cap:
+        return run_everything(box, records, args)
+
+    cap = args.cap or ("R3" if args.delete else "R1" if args.msg else None)
+    return run_capability(cap, box, records, args)
+
+
+# The manifest's order, and it is an order rather than a list. R1 is the only
+# capability that starts the trace clean; every other one appends, so running
+# them in this sequence leaves a single record that runs from triage through
+# drafting, the gate, the standing instructions and the rest. Any other order
+# would either lose the earlier events or leave later ones with nothing to
+# refer back to.
+EVERY_CAPABILITY = ("R1", "R2", "R3", "R4", "R5", "R6", "X1", "X2", "X3", "X4")
+
+
+def run_everything(box, records, args):
+    """--all: every capability, in manifest order, in one process."""
+    done = []
+    for cap in EVERY_CAPABILITY:
+        print("\n" + "=" * 78)
+        done.append((cap, run_capability(cap, box, records, args, within_all=True)))
+    print("\n" + "=" * 78)
+    print("=== --all: every capability, in manifest order ===\n")
+    for cap, status in done:
+        print(f"  {cap:3} {'ok      ' if status == 0 else f'exit {status}  '}{CAPABILITIES[cap]}")
+    failed = [cap for cap, status in done if status != 0]
+    print(f"\n  {len(done) - len(failed)} of {len(done)} returned ok"
+          + (f"; non-zero: {', '.join(failed)}" if failed else ""))
+    print(f"  one trace, one run       {config.TRACE_PATH}  ({len(trace.read())} events)")
+    return 1 if failed else 0
+
+
+def run_capability(cap, box, records, args, within_all=False):
+    """One capability, start to finish. The --cap dispatch and what --all loops over."""
+    record = records[0] if args.msg else None
     # R2 and R3 continue the run R1 recorded rather than starting over, so they
     # append instead of truncating. The trace then holds the triage of all 100
     # messages and the drafting that followed from it, which is what a reader
@@ -888,7 +923,14 @@ def main(argv=None):
         # shares nothing with the one that recorded the instructions except the
         # files on disk, and a reader can check that by running the two halves
         # minutes apart and seeing two different numbers.
-        print(f"  process {os.getpid()}, started fresh; nothing carries over but what is on disk\n")
+        if within_all:
+            # Said plainly rather than left to the pid: --all is one process, so
+            # this pass reads the instructions off disk but does not demonstrate
+            # surviving a restart. The two-command form is what shows that.
+            print(f"  process {os.getpid()}, shared with the capabilities above: --all cannot show the restart.")
+            print("  `--cap R4 --learn`, let it exit, then `--cap R4` is the two-process form.\n")
+        else:
+            print(f"  process {os.getpid()}, started fresh; nothing carries over but what is on disk\n")
     else:
         print(f"  model {config.MODEL} via {config.PROVIDER}\n")
 
